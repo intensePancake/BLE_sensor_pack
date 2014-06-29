@@ -4158,13 +4158,15 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <wire x1="10.16" y1="-10.16" x2="10.16" y2="7.62" width="0.254" layer="94"/>
 <wire x1="10.16" y1="7.62" x2="-10.16" y2="7.62" width="0.254" layer="94"/>
 <wire x1="-10.16" y1="7.62" x2="-10.16" y2="-10.16" width="0.254" layer="94"/>
-<pin name="VIN" x="-15.24" y="2.54" length="middle" direction="pwr"/>
-<pin name="GND" x="-15.24" y="-5.08" length="middle" direction="pwr"/>
-<pin name="3VO" x="0" y="-15.24" length="middle" direction="pwr" rot="R90"/>
-<pin name="INT" x="5.08" y="-15.24" length="middle" direction="out" rot="R90"/>
-<pin name="LED" x="15.24" y="-2.54" length="middle" direction="out" rot="R180"/>
-<pin name="SDA" x="-2.54" y="12.7" length="middle" rot="R270"/>
-<pin name="SCL" x="5.08" y="12.7" length="middle" rot="R270"/>
+<pin name="VIN" x="-15.24" y="2.54" visible="pad" length="middle" direction="pwr"/>
+<pin name="GND" x="-15.24" y="-5.08" visible="pad" length="middle" direction="pwr"/>
+<pin name="3VO" x="-5.08" y="-15.24" visible="pad" length="middle" direction="pwr" rot="R90"/>
+<pin name="INT" x="5.08" y="-15.24" visible="pad" length="middle" direction="out" rot="R90"/>
+<pin name="LED" x="15.24" y="0" visible="pad" length="middle" direction="out" rot="R180"/>
+<pin name="SDA" x="-5.08" y="12.7" visible="pad" length="middle" rot="R270"/>
+<pin name="SCL" x="5.08" y="12.7" visible="pad" length="middle" rot="R270"/>
+<text x="0" y="0" size="1.778" layer="94" align="bottom-center">Adafruit</text>
+<text x="0" y="-2.54" size="1.016" layer="94" align="bottom-center">SI1145 Breakout</text>
 </symbol>
 </symbols>
 <devicesets>
@@ -4392,7 +4394,7 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <net name="N$2" class="0">
 <segment>
 <pinref part="U$4" gate="G$1" pin="SDA"/>
-<wire x1="81.28" y1="50.8" x2="81.28" y2="55.88" width="0.1524" layer="91"/>
+<wire x1="78.74" y1="50.8" x2="78.74" y2="55.88" width="0.1524" layer="91"/>
 <pinref part="U$2" gate="G$1" pin="SDA"/>
 <wire x1="160.02" y1="106.68" x2="160.02" y2="109.22" width="0.1524" layer="91"/>
 <wire x1="160.02" y1="109.22" x2="147.32" y2="109.22" width="0.1524" layer="91"/>
@@ -4400,7 +4402,7 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <pinref part="U1" gate="G$1" pin="A4/SDA"/>
 <wire x1="147.32" y1="71.12" x2="121.92" y2="71.12" width="0.1524" layer="91"/>
 <wire x1="121.92" y1="71.12" x2="121.92" y2="76.2" width="0.1524" layer="91"/>
-<wire x1="81.28" y1="55.88" x2="121.92" y2="55.88" width="0.1524" layer="91"/>
+<wire x1="78.74" y1="55.88" x2="121.92" y2="55.88" width="0.1524" layer="91"/>
 <wire x1="121.92" y1="55.88" x2="121.92" y2="71.12" width="0.1524" layer="91"/>
 <junction x="121.92" y="71.12"/>
 </segment>

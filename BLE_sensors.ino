@@ -25,7 +25,6 @@
 #define ADAFRUITBLE_RDY 3
 #define ADAFRUITBLE_RST 9
 
-#define MAX_DATABUF_SIZE 30 // maximum number of bytes in the data buffer
 #define NUM_SENSORS 6
 
 // sensor bit assignments in request byte
@@ -36,7 +35,12 @@
 #define IR_LIGHT_REQ_BIT 1
 #define UV_LIGHT_REQ_BIT 0
 
+#define DEBUG
+
+#ifdef DEBUG
 #include <assert.h>
+#endif
+
 #include <Wire.h>
 #include <SPI.h>
 #include <SFE_BMP180.h>
@@ -47,50 +51,45 @@ SFE_BMP180 barometer;
 DHT dht(DHTPIN, DHTTYPE);
 Adafruit_BLE_UART ble = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
 
-aci_evt_opcode_t ble_last_state = ACI_EVT_DISCONNECTED;
-
 void setup()
 {
-  Serial.begin(9600);
+	Serial.begin(9600);
+	
+	if(!barometer.begin()) {
+		// init failure
+		Serial.println("Failed to initialize pressure sensor");
+		while(1);
+	}
+	
+	dht.begin();
   
-  if(!barometer.begin()) {
-    // init failure
-    Serial.println("Failed to initialize pressure sensor");
-    while(1);
-  }
-  
-  dht.begin();
-  ble.begin();
-  ble_last_state = ble.getState();
+#ifdef DEBUG
+	ble.setACIcallback(BLE_stateChange);
+#endif
+	ble.setRXcallback(processRequests);
+	ble.begin();
 }
 
 void loop()
 {
-  byte RxBuf[MAX_DATABUF_SIZE];
-  int RxBufsize;
-  ble.pollACI();
-  
-  aci_evt_opcode_t ble_state = ble.getState();
-  if(ble_state != ble_last_state) {
-    // connection state has changed
-    ble_last_state = ble_state;
-  }
-  
-  // check if there is a connection
-  if(ble_state == ACI_EVT_CONNECTED) {
-    // check for available data
-    RxBufsize = 0;
-    while(ble.available()) {
-      while(RxBufsize < MAX_DATABUF_SIZE) {
-        RxBuf[RxBufsize++] = ble.read();
-      }
-      
-      processRequests(RxBuf, RxBufsize);
-    }
-  }
+	ble.pollACI();
 }
 
-// TODO: write this function
+#ifdef DEBUG
+void BLE_stateChange(aci_evt_opcode_t opcode)
+{
+	// state change - print it to the serial port
+	if(opcode == ACI_EVT_DEVICE_STARTED) {
+		Serial.println("BLE now advertising");
+	} else if(opcode == ACI_EVT_CONNECTED) {
+		Serial.println("BLE now connected");
+	} else if(opcode == ACI_EVT_DISCONNECTED) {
+		Serial.println("BLE disconnected");
+	}
+}
+#endif
+
+// TODO: light sensor code
 /* processRequests - processes the request for sensor readings
  * or otherwise, and stores the results of length len in databuf
  *
@@ -105,122 +104,162 @@ void loop()
  * | none | none | temp  | humidity | pressure | Vis. light | IR light | UV Index |
  *
  */
-void processRequests(byte *RxBuf,  int RxBufsize)
+void processRequests(uint8_t *RxBuf, uint8_t RxBufsize)
 {
-  byte TxBuf[NUM_SENSORS * sizeof(float)];
-  int TxBufsize; // number of bytes to send
-  int TxBufIndex = 0;
-  float temp; // in degrees Celcius
-  float humidity; // in percent
-  float abs_P, compensated_P; // in mbar
-  
-  byte req;
-  boolean req_T, req_H, req_P, req_Vis, req_IR, req_UV;
-  
-  // loop through requests
-  for(int i = 0; i < RxBufsize; i++) {
-    // process this request
-    req = RxBuf[i];
-    req_T = req >> TEMP_REQ_BIT;
-    req_H = (req >> HUMIDITY_REQ_BIT) & 0x1;
-    req_P = (req >> PRESSURE_REQ_BIT) & 0x1;
-    req_Vis = (req >> VIS_LIGHT_REQ_BIT) & 0x1;
-    req_IR = (req >> IR_LIGHT_REQ_BIT) & 0x1;
-    req_UV = (req >> UV_LIGHT_REQ_BIT) & 0x1;
-    
-    if(req_T || req_P) {
-      temp = getTemp();
-      floatToBuffer(TxBuf, temp, &TxBufIndex);
-    }
-    if(req_H) {
-      humidity = dht.readHumidity();
-      floatToBuffer(TxBuf, humidity, &TxBufIndex);
-    }
-    if(req_P) {
-      abs_P = getAbsPressure(temp);
-      compensated_P = barometer.sealevel(abs_P, REF_ALTITUDE_M);
-      floatToBuffer(TxBuf, compensated_P, &TxBufIndex);
-    }
-    
-    // TODO:
-    // SI1145 code
-    if(req_Vis) {
-      // get visible intensity
-    }
-    if(req_IR) {
-      // get IR intensity
-    }
-    if(req_UV) {
-      // get UV index
-    }
-    
-    // BLE code
-    // sanity check
-    assert(TxBufsize == sizeof(float) * (req_T + req_H + req_P + req_Vis + req_IR + req_UV));
-    // send bytes
-    ble.write(TxBuf, TxBufsize);
-  }
+#ifdef DEBUG
+	Serial.println("Rx buffer received");
+#endif
+	byte TxBuf[NUM_SENSORS * sizeof(float)];
+	int TxBufsize; // number of bytes to send
+	int TxBufIndex = 0;
+	float temp; // in degrees Celcius
+	float humidity; // in percent
+	float abs_P, compensated_P; // in mbar
+	byte req;
+	boolean req_T, req_H, req_P, req_Vis, req_IR, req_UV;
+	// loop through requests
+	for(int i = 0; i < RxBufsize; i++) {
+		// process this request
+#ifdef DEBUG
+		Serial.println("Determining which sensors to read");
+#endif
+		req = RxBuf[i];
+		req_T = req >> TEMP_REQ_BIT;
+		req_H = (req >> HUMIDITY_REQ_BIT) & 0x1;
+		req_P = (req >> PRESSURE_REQ_BIT) & 0x1;
+		req_Vis = (req >> VIS_LIGHT_REQ_BIT) & 0x1;
+		req_IR = (req >> IR_LIGHT_REQ_BIT) & 0x1;
+		req_UV = (req >> UV_LIGHT_REQ_BIT) & 0x1;
+		
+		if(req_T || req_P) {
+#ifdef DEBUG
+			Serial.println("Reading temperature");
+#endif
+			temp = getTemp();
+			floatToByteArray(TxBuf, temp, &TxBufIndex);
+		}
+		if(req_H) {
+#ifdef DEBUG
+			Serial.println("Reading humidity");
+#endif
+			humidity = dht.readHumidity();
+			floatToByteArray(TxBuf, humidity, &TxBufIndex);
+		}
+		if(req_P) {
+#ifdef DEBUG
+			Serial.println("Reading pressure");
+#endif
+			abs_P = getAbsPressure(temp);
+			compensated_P = barometer.sealevel(abs_P, REF_ALTITUDE_M);
+			floatToByteArray(TxBuf, compensated_P, &TxBufIndex);
+		}
+		// TODO:
+		// SI1145 code
+		if(req_Vis) {
+#ifdef DEBUG
+			Serial.println("Reading visible light intensity");
+#endif
+			// get visible intensity
+		}
+		if(req_IR) {
+#ifdef DEBUG
+			Serial.println("Reading IR light intensity");
+#endif
+			// get IR intensity
+		}
+		if(req_UV) {
+#ifdef DEBUG
+			Serial.println("Reading UV index");
+#endif
+			// get UV index
+		}
+		
+		// we only want to send as much data as was requested
+		TxBufsize = TxBufIndex;
+		
+		// BLE code
+#ifdef DEBUG
+		// sanity check
+		assert(TxBufsize == sizeof(float) *
+				(req_T + req_H + req_P + req_Vis + req_IR + req_UV));
+#endif
+	// send bytes
+#ifdef DEBUG
+		Serial.println("Sending Tx buffer");
+#endif
+		ble.write(TxBuf, TxBufsize);
+	}
 }
 
 float getTemp()
 {
-  int state;
-  double temp;
-  char errcode;
-  
-  state = barometer.startTemperature();
-  if(state != 0) {
-    delay(state); // wait until temperature reading is ready -- about 5 ms
-    state = barometer.getTemperature(temp); // retrieve temperature
-    if(state != 0) {
-      // successful temperature reading
-      return (float)temp;
-    } else {
-      // could not get temperature
-      Serial.println("Failed to retrieve temperature");
-      errcode = barometer.getError();
-      // TODO: error handling
-    }
-  } else {
-    // could not start temperature reading
-    Serial.println("Failed to initialize temperature reading");
-    errcode = barometer.getError();
-    // TODO: error handling
-  }
+	int state;
+	double temp;
+	char errcode;
+	
+	state = barometer.startTemperature();
+	if(state != 0) {
+		delay(state); // wait until temperature reading is ready -- about 5 ms
+		state = barometer.getTemperature(temp); // retrieve temperature
+		if(state != 0) {
+			// successful temperature reading
+			return (float)temp;
+		} else {
+			// could not get temperature
+#ifdef DEBUG
+			Serial.println("Failed to retrieve temperature");
+#endif
+			errcode = barometer.getError();
+			// TODO: error handling
+		}
+	} else {
+		// could not start temperature reading
+#ifdef DEBUG
+		Serial.println("Failed to initialize temperature reading");
+#endif
+		errcode = barometer.getError();
+		// TODO: error handling
+	}
 }
 
 float getAbsPressure(float temp)
 {
-  int state;
-  double abs_P;
-  char errcode;
-  
-  state = barometer.startPressure(3);
-  if(state != 0) {
-    delay(state); // wait for pressure reading
-    state = barometer.getPressure(abs_P, (double&)temp); // retrieve absolute pressure
-    if(state != 0) {
-      // successful pressure reading
-      return (float)abs_P;
-    } else {
-      // could not read pressure
-      Serial.println("Failed to retrieve pressure");
-      // TODO: error handling
-      errcode = barometer.getError();
-    }
-  } else {
-    // could not start pressure reading
-    Serial.println("Failed to initialize pressure reading");
-    // TODO: error handling
-    errcode = barometer.getError();
-  }
+	int state;
+	double abs_P;
+	char errcode;
+	
+	state = barometer.startPressure(3);
+	if(state != 0) {
+		delay(state); // wait for pressure reading
+		state = barometer.getPressure(abs_P, (double&)temp); // retrieve absolute pressure
+		if(state != 0) {
+			// successful pressure reading
+			return (float)abs_P;
+		} else {
+			// could not read pressure
+#ifdef DEBUG
+			Serial.println("Failed to retrieve pressure");
+#endif
+			// TODO: error handling
+			errcode = barometer.getError();
+		}
+	} else {
+		// could not start pressure reading
+#ifdef DEBUG
+		Serial.println("Failed to initialize pressure reading");
+#endif
+		// TODO: error handling
+		errcode = barometer.getError();
+	}
 }
-void floatToBuffer(byte *buffer, float data, int *index)
+
+void floatToByteArray(byte *buffer, float f, int *index)
 {
-  long *dataPtr = (long*)(&data);
-  
-  for(int i = 0; i < sizeof(float); i++) {
-    buffer[*index] = (*dataPtr >> 8 * i);
-    *index += 1;
-  }
+	int i;
+	char *dataPtr = (char*)(&f);
+
+	for(i = 0; i < sizeof(float); i++) {
+		buffer[*index] = *(dataPtr + i);
+		*index += 1;
+	}
 }

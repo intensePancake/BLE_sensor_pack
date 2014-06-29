@@ -3,8 +3,6 @@ Arduino Code
   - Add SI1145 code to the project
   - Add power reduction code - turn off when not in use
   - Add Bluetooth Low Energy code
-    - receive request from device
-	- send data to device
 	- process errors reading from sensors
 
 Android Code
@@ -18,6 +16,5 @@ Hardware
   - circuit soldering
 
 Presentation
-  - Update SI1145 Eagle part
   - Write Instructable
     - when downloading Adafruit libraries, must rename them - no dashes
