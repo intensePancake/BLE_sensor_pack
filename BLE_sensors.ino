@@ -13,6 +13,8 @@
  * of the project will only support Android devices.
  * 
  */
+ 
+ #define ERR_LED_PIN 13
 
 #define M_FT_CONV_FACTOR 3.28084
 #define REF_ALTITUDE_FT 72 // reference altitude in feet for finding pressure
@@ -46,20 +48,34 @@
 #include <SFE_BMP180.h>
 #include <DHT.h>
 #include <Adafruit_BLE_UART.h>
+#include <Adafruit_SI1145.h>
 
 SFE_BMP180 barometer;
 DHT dht(DHTPIN, DHTTYPE);
 Adafruit_BLE_UART ble = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
+Adafruit_SI1145 lsensor = Adafruit_SI1145();
 
 void setup()
 {
 	Serial.begin(9600);
+	pinMode(ERR_LED_PIN, OUTPUT);
+	digitalWrite(ERR_LED_PIN, LOW);
 	
 	if(!barometer.begin()) {
 		// init failure
+#ifdef DEBUG
 		Serial.println("Failed to initialize pressure sensor");
+#endif
+		blink_block_forever(ERR_LED_PIN);
 		while(1);
 	}
+	
+	if(!lsensor.begin()) {
+		// init failure
+#ifdef DEBUG
+		Serial.println("Failed to initialize light sensor");
+#endif
+		blink_block_forever(ERR_LED_PIN);
 	
 	dht.begin();
   
@@ -115,6 +131,9 @@ void processRequests(uint8_t *RxBuf, uint8_t RxBufsize)
 	float temp; // in degrees Celcius
 	float humidity; // in percent
 	float abs_P, compensated_P; // in mbar
+	float vis_intensity;
+	float IR_intensity;
+	float UV_index;
 	byte req;
 	boolean req_T, req_H, req_P, req_Vis, req_IR, req_UV;
 	// loop through requests
@@ -160,18 +179,24 @@ void processRequests(uint8_t *RxBuf, uint8_t RxBufsize)
 			Serial.println("Reading visible light intensity");
 #endif
 			// get visible intensity
+			vis_intensity = lsensor.readVisible();
+			floatToByteArray(TxBuf, vis_intensity, &TxBufIndex);
 		}
 		if(req_IR) {
 #ifdef DEBUG
 			Serial.println("Reading IR light intensity");
 #endif
 			// get IR intensity
+			IR_intensity = lsensor.readIR();
+			floatToByteArray(TxBuf, IR_intensity, &TxBufIndex);
 		}
 		if(req_UV) {
 #ifdef DEBUG
 			Serial.println("Reading UV index");
 #endif
 			// get UV index
+			UV_index = lsensor.readUV() / 100.0;
+			floatToByteArray(TxBuf, UV_index, &TxBufIndex);
 		}
 		
 		// we only want to send as much data as was requested
@@ -263,3 +288,15 @@ void floatToByteArray(byte *buffer, float f, int *index)
 		*index += 1;
 	}
 }
+
+void blink_block_forever(int led_pin)
+{
+	int delay_ms = 250;
+	while(1) {
+		digitalWrite(led_pin, HIGH);
+		delay(delay_ms);
+		digitalWrite(led_pin, LOW);
+		delay(delay_ms);
+	}
+}
+		

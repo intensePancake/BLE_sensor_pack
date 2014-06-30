@@ -6,3 +6,6 @@ http://www.whatismyelevation.com/
 
 Android BLE
 http://developer.android.com/guide/topics/connectivity/bluetooth-le.html
+
+Switching Regulators
+http://en.wikipedia.org/wiki/Voltage_regulator#Switching_regulators

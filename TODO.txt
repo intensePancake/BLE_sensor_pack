@@ -3,6 +3,8 @@ Arduino Code
   - Add SI1145 code to the project
   - Add power reduction code - turn off when not in use
   - Add Bluetooth Low Energy code
+    - receive input from device
+	- send response to device
 	- process errors reading from sensors
 
 Android Code
@@ -14,6 +16,9 @@ Android Code
 Hardware
   - circuit construction
   - circuit soldering
+  - measure current draw from 9V battery, calculate battery life
+  - build external, efficient power supply circuit
+    - switching regulator, buck converter
 
 Presentation
   - Write Instructable
