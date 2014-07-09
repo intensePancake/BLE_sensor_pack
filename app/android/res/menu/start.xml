@@ -1,6 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="gharvey.blesensorpack.MainActivity" >
+    tools:context="gharvey.blesensorpack.StartActivity" >
 
     <item
         android:id="@+id/action_settings"

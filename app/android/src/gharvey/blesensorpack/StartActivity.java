@@ -19,27 +19,40 @@
 package gharvey.blesensorpack;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
 
 
-public class MainActivity extends Activity {
+public class StartActivity extends Activity {
 	
 	private BluetoothAdapter btAdapter;
 	private boolean scanning;
 	private Handler bleHandler;
 	
+	public static final String LABEL_DEVICE_NAME = "BLE_DEVICE_NAME";
+	public static final String LABEL_DEVICE_ADDR = "BLE_DEVICE_ADDRESS";
+	
+	public static final int REQUEST_ENABLE_BT = 1;
 	private static final long SCAN_TIMEOUT = 3000; // timeout after 3 seconds
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_start);
 		
 		// check if Bluetooth LE is supported on the device
 		if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-			Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, R.string.error_ble_not_supported, Toast.LENGTH_SHORT).show();
 			finish();
 		}
 		
@@ -53,7 +66,7 @@ public class MainActivity extends Activity {
 		
 		// check if Bluetooth is supported on the device
 		if(btAdapter == null) {
-			Toast.makeText(this, R.string.error_bt_not_supported, Toast.LENGTH_SHORT.show();
+			Toast.makeText(this, R.string.error_bt_not_supported, Toast.LENGTH_SHORT).show();
 			finish();
 			return;
 		}
@@ -86,7 +99,7 @@ public class MainActivity extends Activity {
 			finish();
 			return;
 		}
-		super.onActivityResult(reqCode, resCode, data);
+		super.onActivityResult(reqCode, resCode, data_i);
 	}
 	
 	/*
@@ -118,13 +131,52 @@ public class MainActivity extends Activity {
 		btAdapter.startLeScan(bleScanCallback);
 		//btAdapter.startLeScan(UUIDs, bleScanCallback);
 	}
+	
+	private BluetoothAdapter.LeScanCallback bleScanCallback =
+	        new BluetoothAdapter.LeScanCallback() {
+		@Override
+		public void onLeScan(final BluetoothDevice device, int rssi,
+							 byte[] scanRecord) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					// check if the device is the sensor pack
+					if(isSensorPack(device)) {
+						// the device is the sensor pack
+						// create an intent to connect to it
+						final Intent gattConnect_i =
+								new Intent(StartActivity.this,
+										   SensorInterfaceActivity.class);
+						
+						// some info so the device can be accessed from
+						// the other activity
+						gattConnect_i.putExtra(LABEL_DEVICE_NAME, device.getName());
+						gattConnect_i.putExtra(LABEL_DEVICE_ADDR, device.getAddress());
+						
+						if(scanning) {
+							btAdapter.stopLeScan(bleScanCallback);
+							scanning = false;
+						}
+						
+						// connect to the sensor pack
+						startActivity(gattConnect_i);
+					}
+				}
+			});
+		}
+	};
+	
+	// still need to implement this
+	private boolean isSensorPack(BluetoothDevice device) {
+		return true;
+	}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.start, menu);
         return true;
-    }
+    };
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
