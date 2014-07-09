@@ -1,0 +1,1 @@
+C:\Work\Bluetooth\trunk\src\SourceCode\WinRT\BLEServiceBrowser\BLEServiceBrowser.csproj;neutral

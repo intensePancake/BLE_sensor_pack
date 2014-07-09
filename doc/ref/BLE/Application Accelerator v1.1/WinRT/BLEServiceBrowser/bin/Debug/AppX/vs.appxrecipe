@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Machine>DEVTEST81</Machine>
+    <WindowsUser>Giulio</WindowsUser>
+    <SolutionConfiguration>Debug|AnyCPU</SolutionConfiguration>
+    <PackageArchitecture>neutral</PackageArchitecture>
+    <RegisteredManifestChecksum>EA4FBE87A909C58D102019AE70D51DA9B14BDC35A447F8E4DABFAA43B772F154</RegisteredManifestChecksum>
+    <RegisteredPackageMoniker>9dc80eac-4470-482f-ace5-cc2a935ff4b0_1.0.0.0_neutral__2t4pypynaqx8t</RegisteredPackageMoniker>
+    <RegisteredUserModeAppID>9dc80eac-4470-482f-ace5-cc2a935ff4b0_2t4pypynaqx8t!App</RegisteredUserModeAppID>
+    <RegisteredPackageID>9dc80eac-4470-482f-ace5-cc2a935ff4b0</RegisteredPackageID>
+    <RegisteredPackagePublisher>CN=Giulio</RegisteredPackagePublisher>
+    <RegisteredVersion>1.0.0.0</RegisteredVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <AppXManifest Include="C:\Work\Bluetooth\BLEServiceBrowser\BLEServiceBrowser\bin\Debug\AppxManifest.xml">
+      <PackagePath>AppxManifest.xml</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+      <Modified>2013-07-04T10:13:37.373</Modified>
+    </AppXManifest>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxPackagedFile Include="C:\Work\Bluetooth\BLEServiceBrowser\BLEServiceBrowser\bin\Debug\BLEServiceBrowser.exe">
+      <PackagePath>BLEServiceBrowser.exe</PackagePath>
+      <Modified>2013-07-04T10:13:37.136</Modified>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Work\Bluetooth\BLEServiceBrowser\BLEServiceBrowser\bin\Debug\BLEServiceBrowser.pdb">
+      <PackagePath>BLEServiceBrowser.pdb</PackagePath>
+      <Modified>2013-07-04T10:13:37.115</Modified>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Work\Bluetooth\BLEServiceBrowser\BLEServiceBrowser\Assets\Logo.scale-100.png">
+      <PackagePath>Assets\Logo.scale-100.png</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+      <Modified>2013-04-18T18:13:24.000</Modified>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Work\Bluetooth\BLEServiceBrowser\BLEServiceBrowser\Assets\SmallLogo.scale-100.png">
+      <PackagePath>Assets\SmallLogo.scale-100.png</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+      <Modified>2013-04-18T18:13:24.000</Modified>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Work\Bluetooth\BLEServiceBrowser\BLEServiceBrowser\Assets\SplashScreen.scale-100.png">
+      <PackagePath>Assets\SplashScreen.scale-100.png</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+      <Modified>2013-04-18T18:13:24.000</Modified>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Work\Bluetooth\BLEServiceBrowser\BLEServiceBrowser\Assets\StoreLogo.scale-100.png">
+      <PackagePath>Assets\StoreLogo.scale-100.png</PackagePath>
+      <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
+      <Modified>2013-04-18T18:13:24.000</Modified>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Work\Bluetooth\BLEServiceBrowser\BLEServiceBrowser\bin\Debug\App.xbf">
+      <PackagePath>App.xbf</PackagePath>
+      <Modified>2013-07-04T08:46:30.928</Modified>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Work\Bluetooth\BLEServiceBrowser\BLEServiceBrowser\bin\Debug\MainPage.xbf">
+      <PackagePath>MainPage.xbf</PackagePath>
+      <Modified>2013-07-04T10:13:36.938</Modified>
+    </AppxPackagedFile>
+    <AppxPackagedFile Include="C:\Work\Bluetooth\BLEServiceBrowser\BLEServiceBrowser\bin\Debug\resources.pri">
+      <PackagePath>resources.pri</PackagePath>
+      <Modified>2013-07-04T10:13:37.266</Modified>
+    </AppxPackagedFile>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+</Project>

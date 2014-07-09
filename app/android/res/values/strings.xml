@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">BLE Sensor Pack</string>
-    <string name="hello_world">Hello world!</string>
+	<string name="btn_connect">Connect</string>
     <string name="action_settings">Settings</string>
 
 </resources>

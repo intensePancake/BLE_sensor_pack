@@ -1,0 +1,386 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		62566EC816FC4F540093A54F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 62566EC716FC4F540093A54F /* UIKit.framework */; };
+		62566ECA16FC4F540093A54F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 62566EC916FC4F540093A54F /* Foundation.framework */; };
+		62566ECC16FC4F540093A54F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 62566ECB16FC4F540093A54F /* CoreGraphics.framework */; };
+		62566ED216FC4F540093A54F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 62566ED016FC4F540093A54F /* InfoPlist.strings */; };
+		62566ED416FC4F540093A54F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 62566ED316FC4F540093A54F /* main.m */; };
+		62566ED816FC4F540093A54F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 62566ED716FC4F540093A54F /* AppDelegate.m */; };
+		62566EDA16FC4F540093A54F /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 62566ED916FC4F540093A54F /* Default.png */; };
+		62566EDC16FC4F540093A54F /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 62566EDB16FC4F540093A54F /* Default@2x.png */; };
+		62566EDE16FC4F540093A54F /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 62566EDD16FC4F540093A54F /* Default-568h@2x.png */; };
+		62566EE116FC4F540093A54F /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 62566EDF16FC4F540093A54F /* MainStoryboard_iPhone.storyboard */; };
+		62566EE416FC4F540093A54F /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 62566EE216FC4F540093A54F /* MainStoryboard_iPad.storyboard */; };
+		62566EE716FC4F540093A54F /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 62566EE616FC4F540093A54F /* MainViewController.m */; };
+		62566EEA16FC4F540093A54F /* DeviceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 62566EE916FC4F540093A54F /* DeviceViewController.m */; };
+		62566EF116FC5AA40093A54F /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 62566EF016FC5AA40093A54F /* CoreBluetooth.framework */; };
+		62566EF61700C0020093A54F /* BLEAdapter.m in Sources */ = {isa = PBXBuildFile; fileRef = 62566EF51700C0020093A54F /* BLEAdapter.m */; };
+		6282829717012DAC0042CCB0 /* ServiceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6282829617012DAC0042CCB0 /* ServiceViewController.m */; };
+		6282829D170198E80042CCB0 /* CharViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6282829C170198E80042CCB0 /* CharViewController.m */; };
+		EAFDF2BB175CDCE700D30A05 /* TestService.m in Sources */ = {isa = PBXBuildFile; fileRef = EAFDF2BA175CDCE700D30A05 /* TestService.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		62566EC416FC4F540093A54F /* BLEServiceBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BLEServiceBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		62566EC716FC4F540093A54F /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		62566EC916FC4F540093A54F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		62566ECB16FC4F540093A54F /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		62566ECF16FC4F540093A54F /* BLEServiceBrowser-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "BLEServiceBrowser-Info.plist"; sourceTree = "<group>"; };
+		62566ED116FC4F540093A54F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		62566ED316FC4F540093A54F /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		62566ED516FC4F540093A54F /* BLEServiceBrowser-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BLEServiceBrowser-Prefix.pch"; sourceTree = "<group>"; };
+		62566ED616FC4F540093A54F /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		62566ED716FC4F540093A54F /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		62566ED916FC4F540093A54F /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
+		62566EDB16FC4F540093A54F /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
+		62566EDD16FC4F540093A54F /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		62566EE016FC4F540093A54F /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
+		62566EE316FC4F540093A54F /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
+		62566EE516FC4F540093A54F /* MainViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
+		62566EE616FC4F540093A54F /* MainViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
+		62566EE816FC4F540093A54F /* DeviceViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DeviceViewController.h; sourceTree = "<group>"; };
+		62566EE916FC4F540093A54F /* DeviceViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DeviceViewController.m; sourceTree = "<group>"; };
+		62566EF016FC5AA40093A54F /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		62566EF31700BB8E0093A54F /* constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
+		62566EF41700C0020093A54F /* BLEAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BLEAdapter.h; sourceTree = "<group>"; };
+		62566EF51700C0020093A54F /* BLEAdapter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BLEAdapter.m; sourceTree = "<group>"; };
+		6282829517012DAC0042CCB0 /* ServiceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServiceViewController.h; sourceTree = "<group>"; };
+		6282829617012DAC0042CCB0 /* ServiceViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ServiceViewController.m; sourceTree = "<group>"; };
+		6282829B170198E70042CCB0 /* CharViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CharViewController.h; sourceTree = "<group>"; };
+		6282829C170198E80042CCB0 /* CharViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CharViewController.m; sourceTree = "<group>"; };
+		EAFDF2B5175CA4CB00D30A05 /* SelectionDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SelectionDelegate.h; sourceTree = "<group>"; };
+		EAFDF2B9175CDCE700D30A05 /* TestService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestService.h; sourceTree = "<group>"; };
+		EAFDF2BA175CDCE700D30A05 /* TestService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestService.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		62566EC116FC4F540093A54F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				62566EF116FC5AA40093A54F /* CoreBluetooth.framework in Frameworks */,
+				62566EC816FC4F540093A54F /* UIKit.framework in Frameworks */,
+				62566ECA16FC4F540093A54F /* Foundation.framework in Frameworks */,
+				62566ECC16FC4F540093A54F /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		62566EBB16FC4F540093A54F = {
+			isa = PBXGroup;
+			children = (
+				62566EF016FC5AA40093A54F /* CoreBluetooth.framework */,
+				62566ECD16FC4F540093A54F /* BLEServiceBrowser */,
+				62566EC616FC4F540093A54F /* Frameworks */,
+				62566EC516FC4F540093A54F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		62566EC516FC4F540093A54F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				62566EC416FC4F540093A54F /* BLEServiceBrowser.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		62566EC616FC4F540093A54F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				62566EC716FC4F540093A54F /* UIKit.framework */,
+				62566EC916FC4F540093A54F /* Foundation.framework */,
+				62566ECB16FC4F540093A54F /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		62566ECD16FC4F540093A54F /* BLEServiceBrowser */ = {
+			isa = PBXGroup;
+			children = (
+				62566EF31700BB8E0093A54F /* constants.h */,
+				62566EF41700C0020093A54F /* BLEAdapter.h */,
+				62566EF51700C0020093A54F /* BLEAdapter.m */,
+				62566ED616FC4F540093A54F /* AppDelegate.h */,
+				62566ED716FC4F540093A54F /* AppDelegate.m */,
+				62566EDF16FC4F540093A54F /* MainStoryboard_iPhone.storyboard */,
+				62566EE216FC4F540093A54F /* MainStoryboard_iPad.storyboard */,
+				62566EF21700B9E80093A54F /* ViewControllers */,
+				62566ECE16FC4F540093A54F /* Supporting Files */,
+				EAFDF2B5175CA4CB00D30A05 /* SelectionDelegate.h */,
+				EAFDF2B9175CDCE700D30A05 /* TestService.h */,
+				EAFDF2BA175CDCE700D30A05 /* TestService.m */,
+			);
+			path = BLEServiceBrowser;
+			sourceTree = "<group>";
+		};
+		62566ECE16FC4F540093A54F /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				62566ECF16FC4F540093A54F /* BLEServiceBrowser-Info.plist */,
+				62566ED016FC4F540093A54F /* InfoPlist.strings */,
+				62566ED316FC4F540093A54F /* main.m */,
+				62566ED516FC4F540093A54F /* BLEServiceBrowser-Prefix.pch */,
+				62566ED916FC4F540093A54F /* Default.png */,
+				62566EDB16FC4F540093A54F /* Default@2x.png */,
+				62566EDD16FC4F540093A54F /* Default-568h@2x.png */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		62566EF21700B9E80093A54F /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				62566EE516FC4F540093A54F /* MainViewController.h */,
+				62566EE616FC4F540093A54F /* MainViewController.m */,
+				62566EE816FC4F540093A54F /* DeviceViewController.h */,
+				62566EE916FC4F540093A54F /* DeviceViewController.m */,
+				6282829517012DAC0042CCB0 /* ServiceViewController.h */,
+				6282829617012DAC0042CCB0 /* ServiceViewController.m */,
+				6282829B170198E70042CCB0 /* CharViewController.h */,
+				6282829C170198E80042CCB0 /* CharViewController.m */,
+			);
+			name = ViewControllers;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		62566EC316FC4F540093A54F /* BLEServiceBrowser */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 62566EED16FC4F540093A54F /* Build configuration list for PBXNativeTarget "BLEServiceBrowser" */;
+			buildPhases = (
+				62566EC016FC4F540093A54F /* Sources */,
+				62566EC116FC4F540093A54F /* Frameworks */,
+				62566EC216FC4F540093A54F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BLEServiceBrowser;
+			productName = BLEServiceBrowser;
+			productReference = 62566EC416FC4F540093A54F /* BLEServiceBrowser.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		62566EBC16FC4F540093A54F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Bluetooth SIG";
+				TargetAttributes = {
+					62566EC316FC4F540093A54F = {
+						DevelopmentTeam = CG5APR59V4;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+						};
+					};
+				};
+			};
+			buildConfigurationList = 62566EBF16FC4F540093A54F /* Build configuration list for PBXProject "BLEServiceBrowser" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 62566EBB16FC4F540093A54F;
+			productRefGroup = 62566EC516FC4F540093A54F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				62566EC316FC4F540093A54F /* BLEServiceBrowser */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		62566EC216FC4F540093A54F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				62566ED216FC4F540093A54F /* InfoPlist.strings in Resources */,
+				62566EDA16FC4F540093A54F /* Default.png in Resources */,
+				62566EDC16FC4F540093A54F /* Default@2x.png in Resources */,
+				62566EDE16FC4F540093A54F /* Default-568h@2x.png in Resources */,
+				62566EE116FC4F540093A54F /* MainStoryboard_iPhone.storyboard in Resources */,
+				62566EE416FC4F540093A54F /* MainStoryboard_iPad.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		62566EC016FC4F540093A54F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				62566ED416FC4F540093A54F /* main.m in Sources */,
+				62566ED816FC4F540093A54F /* AppDelegate.m in Sources */,
+				62566EE716FC4F540093A54F /* MainViewController.m in Sources */,
+				62566EEA16FC4F540093A54F /* DeviceViewController.m in Sources */,
+				62566EF61700C0020093A54F /* BLEAdapter.m in Sources */,
+				6282829717012DAC0042CCB0 /* ServiceViewController.m in Sources */,
+				6282829D170198E80042CCB0 /* CharViewController.m in Sources */,
+				EAFDF2BB175CDCE700D30A05 /* TestService.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		62566ED016FC4F540093A54F /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				62566ED116FC4F540093A54F /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		62566EDF16FC4F540093A54F /* MainStoryboard_iPhone.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				62566EE016FC4F540093A54F /* en */,
+			);
+			name = MainStoryboard_iPhone.storyboard;
+			sourceTree = "<group>";
+		};
+		62566EE216FC4F540093A54F /* MainStoryboard_iPad.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				62566EE316FC4F540093A54F /* en */,
+			);
+			name = MainStoryboard_iPad.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		62566EEB16FC4F540093A54F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		62566EEC16FC4F540093A54F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		62566EEE16FC4F540093A54F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "BLEServiceBrowser/BLEServiceBrowser-Prefix.pch";
+				INFOPLIST_FILE = "BLEServiceBrowser/BLEServiceBrowser-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		62566EEF16FC4F540093A54F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "BLEServiceBrowser/BLEServiceBrowser-Prefix.pch";
+				INFOPLIST_FILE = "BLEServiceBrowser/BLEServiceBrowser-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		62566EBF16FC4F540093A54F /* Build configuration list for PBXProject "BLEServiceBrowser" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				62566EEB16FC4F540093A54F /* Debug */,
+				62566EEC16FC4F540093A54F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		62566EED16FC4F540093A54F /* Build configuration list for PBXNativeTarget "BLEServiceBrowser" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				62566EEE16FC4F540093A54F /* Debug */,
+				62566EEF16FC4F540093A54F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 62566EBC16FC4F540093A54F /* Project object */;
+}
