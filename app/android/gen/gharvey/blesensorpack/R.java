@@ -48,7 +48,6 @@ public final class R {
         public static final int error_no_services=0x7f050009;
         public static final int error_rx_notifications=0x7f05000b;
         public static final int error_service_discovery=0x7f05000a;
-        public static final int hello_world=0x7f05000d;
         public static final int state_change_prefix=0x7f050005;
         public static final int title_activity_sensor_interface=0x7f05000c;
     }

@@ -11,14 +11,12 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/send"
-        android:layout_alignParentBottom="true">
+        android:layout_alignParentBottom="true" >
         
 	    <TextView
 	        android:id="@+id/dbg_msg"
 	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="@string/hello_world" />
+	        android:layout_height="wrap_content" />
     
     </ScrollView>
 

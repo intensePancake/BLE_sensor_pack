@@ -19,6 +19,8 @@
 
 package gharvey.blesensorpack;
 
+import java.util.UUID;
+
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -28,9 +30,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ParcelUuid;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -40,8 +44,11 @@ public class StartActivity extends Activity {
 	private boolean scanning;
 	private Handler bleHandler;
 
+	private static final String BLE_DEVICE_NAME = "BLE Sensor Pack";
 	public static final int REQUEST_ENABLE_BT = 1;
-	private static final long SCAN_TIMEOUT = 3000; // timeout after 3 seconds
+	private static final long SCAN_TIMEOUT = 5000; // timeout in milliseconds
+	
+	private TextView dbg_msg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,19 +57,10 @@ public class StartActivity extends Activity {
         
         bleHandler = new Handler();
 		
-		// check if Bluetooth LE is supported on the device
-		if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-			Toast.makeText(this, R.string.error_ble_not_supported, Toast.LENGTH_SHORT).show();
-			finish();
-		}
-		
 		// Initialize Bluetooth adapter
 		final BluetoothManager btManager =
 				(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 		btAdapter = btManager.getAdapter();
-		/* maybe
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
-		*/
 		
 		// check if Bluetooth is supported on the device
 		if(btAdapter == null) {
@@ -71,7 +69,14 @@ public class StartActivity extends Activity {
 			return;
 		}
 		
-//		ensureBtEn();
+		// check if Bluetooth LE is supported on the device
+		if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+			Toast.makeText(this, R.string.error_ble_not_supported, Toast.LENGTH_SHORT).show();
+			finish();
+		}
+		
+		dbg_msg = (TextView) findViewById(R.id.dbg_msg);
+		dbg_msg.setText("Setup complete\n");
     }
 	
 	@Override
@@ -79,7 +84,7 @@ public class StartActivity extends Activity {
 		super.onResume();
 		
 		ensureBtEn();
-		btAdapter.startLeScan(bleScanCallback);
+		//btAdapter.startLeScan(bleScanCallback);
 		//btAdapter.startLeScan(UUIDs, bleScanCallback);
 	}
 	
@@ -88,8 +93,10 @@ public class StartActivity extends Activity {
 		super.onPause();
 		
 		// stop scanning if needed
-		scanning = false;
-		btAdapter.stopLeScan(bleScanCallback);
+		if(scanning) {
+			scanning = false;
+			btAdapter.stopLeScan(bleScanCallback);
+		}
 	}
 	
 	@Override
@@ -110,19 +117,20 @@ public class StartActivity extends Activity {
 		if(!btAdapter.isEnabled()) {
 			Intent btEnable_i = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			startActivityForResult(btEnable_i, REQUEST_ENABLE_BT);
-		}
-	}
+		}	}
 		
 	/*
 	 * Scan for available BLE devices and connect to the first one.
 	 * Called when the user clicks the Connect button.
 	 */
 	public void bleScan(View view) {
+		dbg_msg.append("In bleScan()\n");
 		// set up timeout
 		bleHandler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				scanning = false;
+				dbg_msg.append("Stopping the scan\n");
 				btAdapter.stopLeScan(bleScanCallback);
 				
 				// let the user know we couldn't find the device
@@ -132,7 +140,9 @@ public class StartActivity extends Activity {
 		
 		// start the scan
 		scanning = true;
+		dbg_msg.append("Starting the scan\n");
 		btAdapter.startLeScan(bleScanCallback);
+		dbg_msg.append("Leaving bleScan()\n");
 		//btAdapter.startLeScan(UUIDs, bleScanCallback);
 	}
 	
@@ -141,6 +151,8 @@ public class StartActivity extends Activity {
 		@Override
 		public void onLeScan(final BluetoothDevice bleDevice, int rssi,
 							 byte[] scanRecord) {
+			Toast.makeText(StartActivity.this, "in callback\n", Toast.LENGTH_SHORT).show();
+			dbg_msg.append("Device found.\n");
 			// check if the device is the sensor pack
 			if(isSensorPack(bleDevice)) {
 				if(scanning) {
@@ -154,13 +166,30 @@ public class StartActivity extends Activity {
 				sensorInterface_i.putExtra(SensorInterfaceActivity.LABEL_DEVICE_ADDR, bleDevice.getAddress());
 				
 				startActivity(sensorInterface_i);
+			} else {
+				dbg_msg.append("Found wrong device\n");
 			}
 		}
 	};
 	
 	// still need to implement this
-	private boolean isSensorPack(BluetoothDevice device) {
-		return true;
+	private boolean isSensorPack(BluetoothDevice btDevice) {
+		if(!(btDevice.getName().contentEquals(BLE_DEVICE_NAME))) {
+			return false;
+		}
+		// the device name is correct
+		if(btDevice.fetchUuidsWithSdp()) {
+			ParcelUuid[] supported_uuids = btDevice.getUuids();
+			for(ParcelUuid pUuid : supported_uuids) {
+				UUID uuid = pUuid.getUuid();
+				if(uuid.equals(SensorInterfaceActivity.UART_UUID)) {
+					// the device offers the UART service
+					return true;
+				}
+			}
+		}
+		
+		return false;
 	}
 
     @Override

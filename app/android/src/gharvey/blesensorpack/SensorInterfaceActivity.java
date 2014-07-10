@@ -65,6 +65,8 @@ public class SensorInterfaceActivity extends Activity {
 				if(!bleGatt.discoverServices()) {
 					shortToast(R.string.error_no_services);
 				}
+				
+				dbg_msg.append(getString(R.string.connected_prefix) + bleDevice.getName());
 			} else if(newState == BluetoothGatt.STATE_DISCONNECTED) {
 				shortToast(R.string.disconnected);
 			} else {
@@ -76,7 +78,7 @@ public class SensorInterfaceActivity extends Activity {
 		public void onServicesDiscovered(BluetoothGatt bleGatt, int status) {
 			super.onServicesDiscovered(bleGatt, status);
 			if(status != BluetoothGatt.GATT_SUCCESS) {
-				shortToast(R.string.error_service_discovery + status);
+				dbg_msg.append(getString(R.string.error_service_discovery) + status + "\n");
 			}
 			
 			// get characteristics
@@ -85,13 +87,15 @@ public class SensorInterfaceActivity extends Activity {
 			
 			// enable notifications for RX characteristic
 			if(!bleGatt.setCharacteristicNotification(bleRx, true)) {
-				shortToast(R.string.error_rx_notifications);
+				dbg_msg.append(getString(R.string.error_rx_notifications) + "\n");
 			}
 			BluetoothGattDescriptor bleGattDesc = bleRx.getDescriptor(CLIENT_UUID);
 			if(bleGattDesc != null) {
 				bleGattDesc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
 				if(!bleGatt.writeDescriptor(bleGattDesc)) {
-					shortToast(R.string.error_rx_notifications);
+					dbg_msg.append(getString(R.string.error_rx_notifications) + "\n");
+				} else {
+					dbg_msg.append("Can't get RX client descriptor\n");
 				}
 			}
 		}
@@ -125,11 +129,6 @@ public class SensorInterfaceActivity extends Activity {
 	}
 	
 	@Override
-	public void onResume() {
-		super.onResume();
-	}
-	
-	@Override
 	public void onStop() {
 		super.onStop();
 		if(bleGatt != null) {
@@ -139,6 +138,7 @@ public class SensorInterfaceActivity extends Activity {
 			bleTx = null;
 			bleRx = null;
 		}
+		finish();
 	}
 
 	@Override

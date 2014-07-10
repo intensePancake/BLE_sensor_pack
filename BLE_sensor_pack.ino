@@ -244,6 +244,7 @@ void processRequests(uint8_t *RxBuf, uint8_t RxBufsize)
 	TxBufsize = TxBufIndex;
 		
 	// BLE code
+        Serial.println("go");
 	ble.write(TxBuf, TxBufsize); // send bytes
     }
 #ifdef DEBUG
