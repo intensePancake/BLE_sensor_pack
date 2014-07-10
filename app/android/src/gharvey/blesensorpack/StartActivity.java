@@ -1,5 +1,5 @@
 /*
- * Main activity for the BLE Sensor App
+ * Start activity for the BLE Sensor App
  * This activity displays a Connect button for the user.
  * When it is clicked, the activity searches for BLE devices and connects
  * to the first possible match for the Adafruit nRF8001 breakout board.
@@ -8,12 +8,13 @@
  * Bluetooth enabled devices.
  *
  * Author: Graham Harvey
- * Last modified: 8 July 2014
+ * Last modified: 9 July 2014
  *
- * Parts of this code are very similar to the sample BluetoothLeGatt code on
- * the Android developer website.  See the following link:
- * https://developer.android.com/samples/BluetoothLeGatt/src/com.example.android.bluetoothlegatt/DeviceScanActivity.html
- *
+ * Parts of this code are similar to the sample BluetoothLeGatt code on
+ * the Android developer website.  The following has been used as a reference:
+ * http://developer.android.com/samples/BluetoothLeGatt/index.html.
+ * Other reference material is included in the project directory at doc\ref.
+ * 
  */
 
 package gharvey.blesensorpack;
@@ -38,10 +39,7 @@ public class StartActivity extends Activity {
 	private BluetoothAdapter btAdapter;
 	private boolean scanning;
 	private Handler bleHandler;
-	
-	public static final String LABEL_DEVICE_NAME = "BLE_DEVICE_NAME";
-	public static final String LABEL_DEVICE_ADDR = "BLE_DEVICE_ADDRESS";
-	
+
 	public static final int REQUEST_ENABLE_BT = 1;
 	private static final long SCAN_TIMEOUT = 3000; // timeout after 3 seconds
 
@@ -49,6 +47,8 @@ public class StartActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+        
+        bleHandler = new Handler();
 		
 		// check if Bluetooth LE is supported on the device
 		if(!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -124,9 +124,13 @@ public class StartActivity extends Activity {
 			public void run() {
 				scanning = false;
 				btAdapter.stopLeScan(bleScanCallback);
+				
+				// let the user know we couldn't find the device
+				Toast.makeText(StartActivity.this, R.string.error_no_device, Toast.LENGTH_SHORT).show();
 			}
 		}, SCAN_TIMEOUT);
 		
+		// start the scan
 		scanning = true;
 		btAdapter.startLeScan(bleScanCallback);
 		//btAdapter.startLeScan(UUIDs, bleScanCallback);
@@ -135,34 +139,22 @@ public class StartActivity extends Activity {
 	private BluetoothAdapter.LeScanCallback bleScanCallback =
 	        new BluetoothAdapter.LeScanCallback() {
 		@Override
-		public void onLeScan(final BluetoothDevice device, int rssi,
+		public void onLeScan(final BluetoothDevice bleDevice, int rssi,
 							 byte[] scanRecord) {
-			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					// check if the device is the sensor pack
-					if(isSensorPack(device)) {
-						// the device is the sensor pack
-						// create an intent to connect to it
-						final Intent gattConnect_i =
-								new Intent(StartActivity.this,
-										   SensorInterfaceActivity.class);
-						
-						// some info so the device can be accessed from
-						// the other activity
-						gattConnect_i.putExtra(LABEL_DEVICE_NAME, device.getName());
-						gattConnect_i.putExtra(LABEL_DEVICE_ADDR, device.getAddress());
-						
-						if(scanning) {
-							btAdapter.stopLeScan(bleScanCallback);
-							scanning = false;
-						}
-						
-						// connect to the sensor pack
-						startActivity(gattConnect_i);
-					}
+			// check if the device is the sensor pack
+			if(isSensorPack(bleDevice)) {
+				if(scanning) {
+					btAdapter.stopLeScan(bleScanCallback);
+					scanning = false;
 				}
-			});
+				
+				// create an intent to interface with device
+				Intent sensorInterface_i = new Intent(StartActivity.this, SensorInterfaceActivity.class);
+				sensorInterface_i.putExtra(SensorInterfaceActivity.LABEL_DEVICE_NAME, bleDevice.getName());
+				sensorInterface_i.putExtra(SensorInterfaceActivity.LABEL_DEVICE_ADDR, bleDevice.getAddress());
+				
+				startActivity(sensorInterface_i);
+			}
 		}
 	};
 	

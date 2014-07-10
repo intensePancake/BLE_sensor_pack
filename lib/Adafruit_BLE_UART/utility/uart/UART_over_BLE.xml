@@ -78,7 +78,7 @@
         </Characteristic>
     </Service>
     <Gapsettings>
-        <Name>UART</Name>
+        <Name>BLE Sensor Pack</Name>
         <DeviceNameWriteLength>7</DeviceNameWriteLength>
         <LocalPipeOnDeviceName>true</LocalPipeOnDeviceName>
         <DeviceNameShortLength>0</DeviceNameShortLength>

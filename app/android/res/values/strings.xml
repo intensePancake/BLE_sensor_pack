@@ -4,8 +4,17 @@
     <string name="app_name">BLE Sensor Pack</string>
     <string name="btn_connect">Connect</string>
     <string name="action_settings">Settings</string>
+    <string name="connected_prefix">Connected to </string>
+    <string name="disconnected">Disconnected</string>
+    <string name="state_change_prefix">Connection state changed to </string>
+    
     <string name="error_bt_not_supported">Device doesn\'t support Bluetooth!</string>
     <string name="error_ble_not_supported">Device doesn\'t support Bluetooth LE!</string>
+    <string name="error_no_device">Can\'t find Sensor Pack</string>
+    <string name="error_no_services">Can\'t find Bluetooth services</string>
+    <string name="error_service_discovery">Failed service discovery: status </string>
+    <string name="error_rx_notifications">Can\'t receive data</string>
+    
     <string name="title_activity_sensor_interface">SensorInterfaceActivity</string>
     <string name="hello_world">Hello world!</string>
 
