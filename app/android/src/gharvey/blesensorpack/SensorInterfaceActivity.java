@@ -8,9 +8,8 @@
  * Last modified: 9 July 2014
  *
  * Parts of this code are similar to the sample BluetoothLeGatt code on
- * the Android developer website.  The following has been used as a reference:
- * http://developer.android.com/samples/BluetoothLeGatt/index.html
- * Other reference material is included in the project directory at doc\ref.
+ * the Android developer website.  The reference material that was used
+ * is included in the project directory at doc/ref/BLE/Android.
  * 
  */
 
@@ -29,6 +28,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -47,6 +47,7 @@ public class SensorInterfaceActivity extends Activity {
 	private String bleDevName;
 	private String bleDevAddr;
 	
+	private BluetoothAdapter btAdapter;
 	private BluetoothDevice bleDevice;
 	private BluetoothGatt bleGatt;
 	private BluetoothGattCharacteristic bleTx;
@@ -112,17 +113,18 @@ public class SensorInterfaceActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_sensor_interface);
-		
+				
 		// get the intent used to start this activity
 		final Intent incoming_i = getIntent();
 		bleDevName = incoming_i.getStringExtra(LABEL_DEVICE_NAME);
 		bleDevAddr = incoming_i.getStringExtra(LABEL_DEVICE_ADDR);
 		
-		final BluetoothManager btManager =
-				(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-		final BluetoothAdapter btAdapter = btManager.getAdapter();
-		bleDevice = btAdapter.getRemoteDevice(bleDevAddr);
-		bleDevice.connectGatt(this, false, gattCallback);
+//		final BluetoothManager btManager =
+//				(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+//		final BluetoothAdapter btAdapter = btManager.getAdapter();
+				
+//		bleDevice = btAdapter.getRemoteDevice(bleDevAddr);
+//		bleDevice.connectGatt(this, false, gattCallback);
 		
 		dbg_msg = (TextView) findViewById(R.id.dbg_msg);
 		dbg_msg.setText(bleDevName);
