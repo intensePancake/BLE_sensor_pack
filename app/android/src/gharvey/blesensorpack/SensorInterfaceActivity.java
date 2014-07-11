@@ -28,7 +28,6 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -47,7 +46,6 @@ public class SensorInterfaceActivity extends Activity {
 	private String bleDevName;
 	private String bleDevAddr;
 	
-	private BluetoothAdapter btAdapter;
 	private BluetoothDevice bleDevice;
 	private BluetoothGatt bleGatt;
 	private BluetoothGattCharacteristic bleTx;
@@ -119,12 +117,12 @@ public class SensorInterfaceActivity extends Activity {
 		bleDevName = incoming_i.getStringExtra(LABEL_DEVICE_NAME);
 		bleDevAddr = incoming_i.getStringExtra(LABEL_DEVICE_ADDR);
 		
-//		final BluetoothManager btManager =
-//				(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-//		final BluetoothAdapter btAdapter = btManager.getAdapter();
+		final BluetoothManager btManager =
+				(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+		final BluetoothAdapter btAdapter = btManager.getAdapter();
 				
-//		bleDevice = btAdapter.getRemoteDevice(bleDevAddr);
-//		bleDevice.connectGatt(this, false, gattCallback);
+		bleDevice = btAdapter.getRemoteDevice(bleDevAddr);
+		bleDevice.connectGatt(this, false, gattCallback);
 		
 		dbg_msg = (TextView) findViewById(R.id.dbg_msg);
 		dbg_msg.setText(bleDevName);

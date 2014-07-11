@@ -18,6 +18,10 @@
 
 package gharvey.blesensorpack;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import android.app.Activity;
@@ -30,7 +34,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -44,7 +47,7 @@ public class StartActivity extends Activity {
 	private boolean scanning;
 	private Handler bleHandler;
 
-	private static final String BLE_DEVICE_NAME = "BLE Sensor Pack";
+	private static final String BLE_DEVICE_NAME = "UART";
 	public static final int REQUEST_ENABLE_BT = 1;
 	private static final long SCAN_TIMEOUT = 5000; // timeout in milliseconds
 	
@@ -56,11 +59,9 @@ public class StartActivity extends Activity {
         bleHandler = new Handler();
 		
 		// Initialize Bluetooth adapter
-/*        final BluetoothManager btManager =
+        final BluetoothManager btManager =
 				(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 		btAdapter = btManager.getAdapter();
-*/
-        btAdapter = BluetoothAdapter.getDefaultAdapter();
 		
 		// check if Bluetooth is supported on the device
 		if(btAdapter == null) {
@@ -155,7 +156,7 @@ public class StartActivity extends Activity {
 			Log.d("bleScanCallback", "Device found.");
 			
 			// check if the device is the sensor pack
-			if(isSensorPack(bleDevice)) {
+			if(isSensorPack(bleDevice, scanRecord)) {
 				if(scanning) {
 					btAdapter.stopLeScan(bleScanCallback);
 					scanning = false;
@@ -175,27 +176,75 @@ public class StartActivity extends Activity {
 	};
 	
 	// still need to implement this
-	private boolean isSensorPack(BluetoothDevice btDevice) {
-		Log.d("isSensorPack()", "Checking the device");
+	private boolean isSensorPack(BluetoothDevice btDevice, byte[] scanRecord) {
 		if(!(btDevice.getName().contentEquals(BLE_DEVICE_NAME))) {
-			Log.d("isSensorPack", "Device Name: " + btDevice.getName());
+			Log.d("isSensorPack()", "Found other device");
 			return false;
 		}
 		// the device name is correct
-		if(btDevice.fetchUuidsWithSdp()) {
-			ParcelUuid[] supported_uuids = btDevice.getUuids();
-			for(ParcelUuid pUuid : supported_uuids) {
-				UUID uuid = pUuid.getUuid();
-				Log.d("isSensorPack()", "Service UUID found: " + uuid.toString());
-				if(uuid.equals(SensorInterfaceActivity.UART_UUID)) {
-					// the device offers the UART service
-					Log.d("isSensorPack()", "Found Sensor Pack!");
-					return true;
+		if(parseUUIDs(scanRecord).contains(SensorInterfaceActivity.UART_UUID)) {
+			// the device offers the UART service
+			Log.d("isSensorPack()", "Found Sensor Pack!");
+			return true;
+		}
+		return false;
+	}
+	
+	/* parseUUIDs - returns a list of custom service UUIDs for Bluetooth Low Energy
+	 * 
+	 * This method was taken directly from
+	 * http://stackoverflow.com/questions/18019161/startlescan-with-128-bit-uuids-doesnt-work-on-native-android-ble-implementation/24539704#24539704
+	 */
+	private List<UUID> parseUUIDs(final byte[] advertisedData) {
+		List<UUID> uuids = new ArrayList<UUID>();
+
+		int offset = 0;
+		while (offset < (advertisedData.length - 2)) {
+			int len = advertisedData[offset++];
+			if (len == 0)
+				break;
+
+			int type = advertisedData[offset++];
+			switch (type) {
+			case 0x02: // Partial list of 16-bit UUIDs
+			case 0x03: // Complete list of 16-bit UUIDs
+				while (len > 1) {
+					int uuid16 = advertisedData[offset++];
+					uuid16 += (advertisedData[offset++] << 8);
+					len -= 2;
+					uuids.add(UUID.fromString(String.format(
+							"%08x-0000-1000-8000-00805f9b34fb", uuid16)));
 				}
+				break;
+			case 0x06:// Partial list of 128-bit UUIDs
+			case 0x07:// Complete list of 128-bit UUIDs
+				// Loop through the advertised 128-bit UUID's.
+				while (len >= 16) {
+					try {
+						// Wrap the advertised bits and order them.
+						ByteBuffer buffer = ByteBuffer.wrap(advertisedData,
+								offset++, 16).order(ByteOrder.LITTLE_ENDIAN);
+						long mostSignificantBit = buffer.getLong();
+						long leastSignificantBit = buffer.getLong();
+						uuids.add(new UUID(leastSignificantBit,
+								mostSignificantBit));
+					} catch (IndexOutOfBoundsException e) {
+						// Defensive programming.
+						// Log.e(LOG_TAG, e.toString());
+						continue;
+					} finally {
+						// Move the offset to read the next uuid.
+						offset += 15;
+						len -= 16;
+					}
+				}
+				break;
+			default:
+				offset += (len - 1);
+				break;
 			}
 		}
-		
-		return false;
+		return uuids;
 	}
 
     @Override
