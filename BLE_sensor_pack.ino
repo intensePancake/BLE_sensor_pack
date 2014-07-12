@@ -2,8 +2,8 @@
  * BT_sensors.ino
  *
  * Author: Graham Harvey
- * Last Modified: 28 June 2014
- * Version 0.1
+ * Last Modified: 11 July 2014
+ * Version: 1.0
  *
  * This is the main Arduino project file for this Bluetooth
  * Low Energy sensor project.  The Arduino will obtain data 
@@ -31,13 +31,15 @@
 
 #define NUM_SENSORS 6
 
+#define TIME_BETWEEN_SENDS 2000 // milliseconds
+
 // sensor bit assignments in request byte
 #define TEMP_REQ_BIT 5
 #define HUMIDITY_REQ_BIT 4
 #define PRESSURE_REQ_BIT 3
 #define VIS_LIGHT_REQ_BIT 2
 #define IR_LIGHT_REQ_BIT 1
-#define UV_LIGHT_REQ_BIT 0
+#define UV_INDEX_REQ_BIT 0
 
 #define DEBUG
 
@@ -53,6 +55,12 @@ DHT dht(DHTPIN, DHTTYPE);
 Adafruit_BLE_UART ble = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
 Adafruit_SI1145 lsensor = Adafruit_SI1145();
 
+// activity state of the sensors: 1 for on, 0 for off
+boolean state_T, state_H, state_P, state_Vis, state_IR, state_UV;
+
+boolean sensors_enable;
+unsigned long last_send_time;
+
 void setup()
 {
     Serial.begin(9600);
@@ -60,6 +68,8 @@ void setup()
         
     pinMode(ERR_LED_PIN, OUTPUT);
     digitalWrite(ERR_LED_PIN, LOW);
+    
+    sensors_enable = true;
 	
     if(!barometer.begin()) {
         // init failure
@@ -80,33 +90,91 @@ void setup()
 	
     dht.begin();
   
-#ifdef DEBUG
     ble.setACIcallback(BLE_stateChange);
-#endif
-    ble.setRXcallback(processRequests);
+    ble.setRXcallback(updateSensorState);
     ble.begin();
 #ifdef DEBUG
     Serial.println("nRF8001 init complete");
 #endif
+    
+    last_send_time = millis();
 }
-
-void loop()
-{
-     ble.pollACI();
-     //delay(500);
 
 /*
-#ifdef DEBUG
-        uint8_t buf = 0xff;
-        uint8_t bufsize = 1;
-        Serial.println("Sending buffer");
-        delay(500);
-        processRequests(&buf, bufsize);
-#endif
-*/
+ * The buffer that is sent includes one byte specifying the sensor
+ * used, and four bytes representing the float value that was read
+ * from that sensor.
+ */
+void loop()
+{
+    ble.pollACI();
+  
+    if((millis() - last_send_time > TIME_BETWEEN_SENDS) && sensors_enable) {
+        byte TxBuf[NUM_SENSORS * (sizeof(byte) + sizeof(float))];
+        int TxBufsize; // number of bytes to send
+        int TxBufIndex = 0;
+        float temp; // in degrees Celcius
+        float humidity; // in percent
+        float abs_P, compensated_P; // in mbar
+        float P_atm; // in atm
+        float vis_intensity;
+        float IR_intensity;
+        float UV_index;
+    
+        if(state_T) {
+            // get temperature
+            temp = getTemp();
+            sensorDataToBuffer(TxBuf, TEMP_REQ_BIT, temp, &TxBufIndex);
+        }
+        if(state_H) {
+            // get humidity
+            humidity = dht.readHumidity();
+            sensorDataToBuffer(TxBuf, HUMIDITY_REQ_BIT, humidity, &TxBufIndex);
+        }
+        if(state_P) {
+            // get pressure
+            // we need the temperature to get pressure,
+            // so measure it if we haven't already
+            if(!state_T) {
+                temp = getTemp();
+            }
+            abs_P = getAbsPressure(temp);
+	    compensated_P = barometer.sealevel(abs_P, REF_ALTITUDE_M);
+            P_atm = compensated_P * MBAR_ATM_CONV_FACTOR;
+            sensorDataToBuffer(TxBuf, PRESSURE_REQ_BIT, P_atm, &TxBufIndex);
+        }
+        if(state_Vis) {
+            // get visible intensity
+	    vis_intensity = lsensor.readVisible();
+            sensorDataToBuffer(TxBuf, VIS_LIGHT_REQ_BIT, vis_intensity, &TxBufIndex);
+        }
+        if(state_IR) {
+            // get IR intensity
+            IR_intensity = lsensor.readIR();
+            sensorDataToBuffer(TxBuf, IR_LIGHT_REQ_BIT, IR_intensity, &TxBufIndex);
+        }
+        if(state_UV) {
+            // get UV index
+            UV_index = lsensor.readUV() / 100.0;
+            sensorDataToBuffer(TxBuf, UV_INDEX_REQ_BIT, UV_index, &TxBufIndex);
+        }
+    
+        TxBufsize = TxBufIndex;
+    
+        last_send_time = millis();
+        if(TxBufsize != 0) {
+            ble.write(TxBuf, TxBufsize); // send bytes
+        }
+    }
 }
 
-#ifdef DEBUG
+void sensorDataToBuffer(byte *buffer, byte sensor_select, float f, int *indexPtr)
+{
+    buffer[*indexPtr] = sensor_select;
+    *indexPtr += 1;
+    floatToByteArray(buffer, f, indexPtr);
+}
+
 void BLE_stateChange(aci_evt_opcode_t opcode)
 {
     // state change - print it to the serial port
@@ -114,15 +182,15 @@ void BLE_stateChange(aci_evt_opcode_t opcode)
         Serial.println("BLE now advertising");
     } else if(opcode == ACI_EVT_CONNECTED) {
         Serial.println("BLE now connected");
+        sensors_enable = true;
     } else if(opcode == ACI_EVT_DISCONNECTED) {
         Serial.println("BLE disconnected");
+        sensors_enable = false;
     }
 }
-#endif
 
-// TODO: light sensor code
-/* processRequests - processes the request for sensor readings
- * or otherwise, and stores the results of length len in databuf
+/*
+ * updateSensorState - turn sensors on or off, depending on input
  *
  * The request format is as follows: one request is in the form
  * of one byte - 8 bits.  There are 6 sensors that the Arduino
@@ -133,123 +201,21 @@ void BLE_stateChange(aci_evt_opcode_t opcode)
  *
  * |   7  |   6  |   5   |    4     |    3     |   2        |    1     |    0     |
  * | none | none | temp  | humidity | pressure | Vis. light | IR light | UV Index |
- *
  */
-void processRequests(uint8_t *RxBuf, uint8_t RxBufsize)
+void updateSensorState(uint8_t *RxBuf, uint8_t RxBufsize)
 {
-#ifdef DEBUG
-    Serial.println("Rx buffer received");
-    for(int i = 0; i < RxBufsize; i++) {
-        Serial.print("\t0x");
-        Serial.print(RxBuf[i], HEX);
-        delay(10);
-    }
-    Serial.println("");
-#endif
-
-    byte TxBuf[NUM_SENSORS * sizeof(float)];
-    int TxBufsize; // number of bytes to send
-    int TxBufIndex = 0;
-    float temp; // in degrees Celcius
-    float humidity; // in percent
-    float abs_P, compensated_P; // in mbar
-    float P_atm; // in atm
-    float vis_intensity;
-    float IR_intensity;
-    float UV_index;
     byte req;
-    boolean req_T, req_H, req_P, req_Vis, req_IR, req_UV;
-    // loop through requests
-
+  
     for(int i = 0; i < RxBufsize; i++) {
-    	// process this request
-    
         // determine which sensors to read
 	req = RxBuf[i];
-	req_T = (req >> TEMP_REQ_BIT) & 0x1;
-	req_H = (req >> HUMIDITY_REQ_BIT) & 0x1;
-	req_P = (req >> PRESSURE_REQ_BIT) & 0x1;
-	req_Vis = (req >> VIS_LIGHT_REQ_BIT) & 0x1;
-	req_IR = (req >> IR_LIGHT_REQ_BIT) & 0x1;
-	req_UV = (req >> UV_LIGHT_REQ_BIT) & 0x1;
-	
-
-	if(req_T || req_P) {
-            // pressure measurement requires the temperature,
-            // so update temperature as well
-            temp = getTemp();
-            floatToByteArray(TxBuf, temp, &TxBufIndex);
-#ifdef DEBUG
-            Serial.print("T=");
-            Serial.println(temp);
-#endif
-	}
-
-	if(req_H) {
-	    humidity = dht.readHumidity();
-	    floatToByteArray(TxBuf, humidity, &TxBufIndex);
-#ifdef DEBUG
-	    Serial.print("H=");
-            Serial.println(humidity);
-#endif
-        }
-
-	if(req_P) {
-	    abs_P = getAbsPressure(temp);
-	    compensated_P = barometer.sealevel(abs_P, REF_ALTITUDE_M);
-            P_atm = compensated_P * MBAR_ATM_CONV_FACTOR;
-	    floatToByteArray(TxBuf, compensated_P, &TxBufIndex);
-#ifdef DEBUG
-            Serial.print("P=");
-            Serial.println(compensated_P);
-#endif
-	}
-
-	// TODO:
-	// SI1145 code
-	if(req_Vis) {
-            // get visible intensity
-	    vis_intensity = lsensor.readVisible();
-	    floatToByteArray(TxBuf, vis_intensity, &TxBufIndex);
-#ifdef DEBUG
-	    Serial.print("VI=");
-            Serial.println(vis_intensity);
-#endif
-	}
-
-	if(req_IR) {
-	    // get IR intensity
-	    IR_intensity = lsensor.readIR();
-	    floatToByteArray(TxBuf, IR_intensity, &TxBufIndex);
-#ifdef DEBUG
-            Serial.print("IR=");
-            Serial.println(IR_intensity);
-#endif
-	}
-
-	if(req_UV) {
-	    // get UV index
-	    UV_index = lsensor.readUV() / 100.0;
-	    floatToByteArray(TxBuf, UV_index, &TxBufIndex);
-#ifdef DEBUG
-	    Serial.print("UV=");
-            Serial.println(UV_index);
-#endif
-	}
-
-	// we only want to send as much data as was requested
-        // NOTE: if pressure is requested, temperature and pressure are sent back
-        // regardless of temperature request.  This is because temperature is
-        // required for the pressure calculation.
-	TxBufsize = TxBufIndex;
-		
-	// BLE code
-        Serial.println("go");
-	ble.write(TxBuf, TxBufsize); // send bytes
+	state_T = (req >> TEMP_REQ_BIT) & 0x1;
+	state_H = (req >> HUMIDITY_REQ_BIT) & 0x1;
+	state_P = (req >> PRESSURE_REQ_BIT) & 0x1;
+	state_Vis = (req >> VIS_LIGHT_REQ_BIT) & 0x1;
+	state_IR = (req >> IR_LIGHT_REQ_BIT) & 0x1;
+	state_UV = (req >> UV_INDEX_REQ_BIT) & 0x1;
     }
-#ifdef DEBUG
-    Serial.println("Done processing request");
-#endif
 }
 
 float getTemp()
@@ -314,14 +280,14 @@ float getAbsPressure(float temp)
     }
 }
 
-void floatToByteArray(byte *buffer, float f, int *index)
+void floatToByteArray(byte *buffer, float f, int *indexPtr)
 {
     int i;
     char *dataPtr = (char*)(&f);
 
     for(i = 0; i < sizeof(float); i++) {
-	buffer[*index] = *(dataPtr + i);
-	*index += 1;
+	buffer[*indexPtr] = *(dataPtr + i);
+	*indexPtr += 1;
     }
 }
 

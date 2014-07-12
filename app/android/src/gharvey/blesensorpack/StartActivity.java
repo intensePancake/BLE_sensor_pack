@@ -163,12 +163,11 @@ public class StartActivity extends Activity {
 				}
 				
 				// create an intent to interface with device
-/*				Intent sensorInterface_i = new Intent(StartActivity.this, SensorInterfaceActivity.class);
+				Intent sensorInterface_i = new Intent(StartActivity.this, SensorInterfaceActivity.class);
 				sensorInterface_i.putExtra(SensorInterfaceActivity.LABEL_DEVICE_NAME, bleDevice.getName());
 				sensorInterface_i.putExtra(SensorInterfaceActivity.LABEL_DEVICE_ADDR, bleDevice.getAddress());
 				
 				startActivity(sensorInterface_i);
-*/
 			} else {
 				Log.d("bleScanCallback", "Found wrong device");
 			}

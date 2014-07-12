@@ -15,6 +15,7 @@
 
 package gharvey.blesensorpack;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import android.app.Activity;
@@ -28,9 +29,14 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ListView;
 import android.widget.Toast;
 
 public class SensorInterfaceActivity extends Activity {
@@ -43,16 +49,51 @@ public class SensorInterfaceActivity extends Activity {
 	public static final String LABEL_DEVICE_NAME = "BLE_DEVICE_NAME";
 	public static final String LABEL_DEVICE_ADDR = "BLE_DEVICE_ADDRESS";
 	
-	private String bleDevName;
-	private String bleDevAddr;
+	// define labels for the sensors on the sensor pack
+	public static final String LABEL_SENSOR_TEMP = "Temp";
+	public static final String LABEL_SENSOR_HUMIDITY = "Humidity";
+	public static final String LABEL_SENSOR_PRESSURE = "Pressure";
+	public static final String LABEL_SENSOR_VISLIGHT = "Visible Light";
+	public static final String LABEL_SENSOR_IRLIGHT = "IR Light";
+	public static final String LABEL_SENSOR_UVINDEX = "UV Index";
 	
+	// define unit strings to use for each sensor
+	public static final String UNITS_TEMP = (char) 0x00B0 + "C"; // degrees C
+	public static final String UNITS_HUMIDITY = "%";
+	public static final String UNITS_PRESSURE = "atm"; // atmospheres
+	public static final String UNITS_VISLIGHT = ""; // dimensionless, relative value
+	public static final String UNITS_IRLIGHT = ""; // dimensionless, relative value
+	public static final String UNITS_UVINDEX = ""; // dimensionless, relative value
+	
+	// define request bits for use with the Arduino code
+	public static final int REQUEST_BIT_TEMP = 5;
+	public static final int REQUEST_BIT_HUMIDITY = 4;
+	public static final int REQUEST_BIT_PRESSURE = 3;
+	public static final int REQUEST_BIT_VISLIGHT = 2;
+	public static final int REQUEST_BIT_IRLIGHT = 1;
+	public static final int REQUEST_BIT_UVINDEX = 0;
+	
+	// define indices for the ArrayList of sensors.
+	// this is done for clarity
+	public static final int INDEX_TEMP = 5;
+	public static final int INDEX_HUMIDITY = 4;
+	public static final int INDEX_PRESSURE = 3;
+	public static final int INDEX_VISLIGHT = 2;
+	public static final int INDEX_IRLIGHT = 1;
+	public static final int INDEX_UVINDEX = 0;
+	
+	// declare Bluetooth LE parts
 	private BluetoothDevice bleDevice;
 	private BluetoothGatt bleGatt;
 	private BluetoothGattCharacteristic bleTx;
 	private BluetoothGattCharacteristic bleRx;
 	
-	private TextView dbg_msg;
-		
+	private String bleDevAddr;
+	
+	private DisplayAdapter displayAdapter;
+	private ListView listView;
+	private ArrayList<Sensor> sensorPack;
+			
 	private BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
 		@Override
 		public void onConnectionStateChange(BluetoothGatt bleGatt, int status, int newState) {
@@ -65,11 +106,11 @@ public class SensorInterfaceActivity extends Activity {
 					shortToast(R.string.error_no_services);
 				}
 				
-				dbg_msg.append(getString(R.string.connected_prefix) + bleDevice.getName());
 			} else if(newState == BluetoothGatt.STATE_DISCONNECTED) {
 				shortToast(R.string.disconnected);
 			} else {
 				shortToast(R.string.state_change_prefix + newState);
+				Log.e("onConnectionStateChange()", "Unknown state: " + newState);
 			}
 		}
 	
@@ -77,7 +118,7 @@ public class SensorInterfaceActivity extends Activity {
 		public void onServicesDiscovered(BluetoothGatt bleGatt, int status) {
 			super.onServicesDiscovered(bleGatt, status);
 			if(status != BluetoothGatt.GATT_SUCCESS) {
-				dbg_msg.append(getString(R.string.error_service_discovery) + status + "\n");
+				Log.e("onServicesDiscovered()", "Failure: service discovery");
 			}
 			
 			// get characteristics
@@ -86,16 +127,16 @@ public class SensorInterfaceActivity extends Activity {
 			
 			// enable notifications for RX characteristic
 			if(!bleGatt.setCharacteristicNotification(bleRx, true)) {
-				dbg_msg.append(getString(R.string.error_rx_notifications) + "\n");
+				Log.e("onServicesDiscovered()", "Can't set RX characteristic notifications");
 			}
 			BluetoothGattDescriptor bleGattDesc = bleRx.getDescriptor(CLIENT_UUID);
 			if(bleGattDesc != null) {
 				bleGattDesc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
 				if(!bleGatt.writeDescriptor(bleGattDesc)) {
-					dbg_msg.append(getString(R.string.error_rx_notifications) + "\n");
-				} else {
-					dbg_msg.append("Can't get RX client descriptor\n");
+					Log.e("onServicesDiscovered()", "Can't write RX descriptor value");
 				}
+			} else {
+				Log.e("onServicesDiscovered()", "Can't get RX descriptor");
 			}
 		}
 		
@@ -103,18 +144,110 @@ public class SensorInterfaceActivity extends Activity {
 		public void onCharacteristicChanged(BluetoothGatt bleGatt,
 							BluetoothGattCharacteristic bleCharacteristic) {
 			super.onCharacteristicChanged(bleGatt, bleCharacteristic);
-			dbg_msg.append("Received: " + bleCharacteristic.getStringValue(0));
+			
+			Log.d("onCharacteristicChanged()", "Received data");
+			float data;
+			byte[] RxBuf = bleCharacteristic.getValue();
+			int RxBufIndex = 0;
+			while(RxBufIndex < RxBuf.length) {
+				int dataOffset = RxBufIndex + 1;
+				switch(RxBuf[RxBufIndex]) {
+				case REQUEST_BIT_TEMP:
+					// the next 4 bytes are temperature data
+					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
+																 dataOffset);
+					sensorPack.get(INDEX_TEMP).setData(data);
+					break;
+				case REQUEST_BIT_HUMIDITY:
+					// the next 4 bytes are humidity data
+					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
+																	 dataOffset);
+					sensorPack.get(INDEX_HUMIDITY).setData(data);
+					break;
+				case REQUEST_BIT_PRESSURE:
+					// the next 4 bytes are pressure data
+					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
+																	 dataOffset);
+					sensorPack.get(INDEX_PRESSURE).setData(data);
+					break;
+				case REQUEST_BIT_VISLIGHT:
+					// the next 4 bytes are visible light data
+					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
+																	 dataOffset);
+					sensorPack.get(INDEX_VISLIGHT).setData(data);
+					break;
+				case REQUEST_BIT_IRLIGHT:
+					// the next 4 bytes are IR light data
+					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
+																	dataOffset);
+					sensorPack.get(INDEX_IRLIGHT).setData(data);
+					break;
+				case REQUEST_BIT_UVINDEX:
+					// the next 4 bytes are UV index data
+					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
+																	dataOffset);
+					sensorPack.get(INDEX_UVINDEX).setData(data);
+					break;
+				default:
+					Log.e("onCharacteristicChanged()", "No sensor identifier read");
+					break;
+				}
+				
+				RxBufIndex += 5; // 1 byte for sensor identifier + 4 bytes for sensor data
+			}
+			
+			// update UI
+			displayAdapter.notifyDataSetChanged();
 		}
 	};
+	
+	private void sensorPack_init() {
+		Sensor temp = new Sensor(LABEL_SENSOR_TEMP, UNITS_TEMP, REQUEST_BIT_TEMP);
+		Sensor humidity = new Sensor(LABEL_SENSOR_HUMIDITY, UNITS_HUMIDITY, REQUEST_BIT_HUMIDITY);
+		Sensor pressure = new Sensor(LABEL_SENSOR_PRESSURE, UNITS_PRESSURE, REQUEST_BIT_PRESSURE);
+		Sensor visLight = new Sensor(LABEL_SENSOR_VISLIGHT, UNITS_VISLIGHT, REQUEST_BIT_VISLIGHT);
+		Sensor irLight = new Sensor(LABEL_SENSOR_IRLIGHT, UNITS_IRLIGHT, REQUEST_BIT_IRLIGHT);
+		Sensor uvIndex = new Sensor(LABEL_SENSOR_UVINDEX, UNITS_UVINDEX, REQUEST_BIT_UVINDEX);
+
+		sensorPack = new ArrayList<Sensor>();
+		sensorPack.add(temp);
+		sensorPack.add(humidity);
+		sensorPack.add(pressure);
+		sensorPack.add(visLight);
+		sensorPack.add(irLight);
+		sensorPack.add(uvIndex);
+	}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_sensor_interface);
+		
+		sensorPack_init();
+		
+		// initialize user interface
+		listView = (ListView) findViewById(R.id.listview);
+		displayAdapter = new DisplayAdapter(this, sensorPack);
+		listView.setAdapter(displayAdapter);
+		listView.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position,
+					long id) {
+				if(view == null) {
+					view = (ListView) displayAdapter.getView(position, view, parent);
+				}
+				ListView lv = (ListView) view;
+				
+				Sensor sensor = (Sensor) lv.getItemAtPosition(position);
+				Log.d("onItemClick()", "Clicked item at position " + position);
+				Log.d("onItemClick()", "Function id = " + id);
+				Log.d("onItemClick()", "Object id = " + sensor.id);
+				Log.d("onItemClick()", "Sensor name = " + sensor.getName());
+			}
+		});
 				
 		// get the intent used to start this activity
 		final Intent incoming_i = getIntent();
-		bleDevName = incoming_i.getStringExtra(LABEL_DEVICE_NAME);
 		bleDevAddr = incoming_i.getStringExtra(LABEL_DEVICE_ADDR);
 		
 		final BluetoothManager btManager =
@@ -123,9 +256,6 @@ public class SensorInterfaceActivity extends Activity {
 				
 		bleDevice = btAdapter.getRemoteDevice(bleDevAddr);
 		bleDevice.connectGatt(this, false, gattCallback);
-		
-		dbg_msg = (TextView) findViewById(R.id.dbg_msg);
-		dbg_msg.setText(bleDevName);
 	}
 	
 	@Override
