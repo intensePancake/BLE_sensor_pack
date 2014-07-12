@@ -5,13 +5,13 @@ public class Sensor {
 	private float data;
 	private String units;
 	private boolean enable;
-	protected int id;
+	protected int id_bit;
 	
-	public Sensor(String name, String units, int identifier) {
+	public Sensor(String name, String units, int id_bit) {
 		this.name = name;
 		this.units = units;
 		this.enable = false;
-		this.id = identifier;
+		this.id_bit = id_bit;
 	}
 	
 	public void setName(String name) {

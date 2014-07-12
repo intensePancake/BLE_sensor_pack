@@ -30,7 +30,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -66,21 +65,12 @@ public class SensorInterfaceActivity extends Activity {
 	public static final String UNITS_UVINDEX = ""; // dimensionless, relative value
 	
 	// define request bits for use with the Arduino code
-	public static final int REQUEST_BIT_TEMP = 5;
-	public static final int REQUEST_BIT_HUMIDITY = 4;
-	public static final int REQUEST_BIT_PRESSURE = 3;
-	public static final int REQUEST_BIT_VISLIGHT = 2;
-	public static final int REQUEST_BIT_IRLIGHT = 1;
-	public static final int REQUEST_BIT_UVINDEX = 0;
-	
-	// define indices for the ArrayList of sensors.
-	// this is done for clarity
-	public static final int INDEX_TEMP = 5;
-	public static final int INDEX_HUMIDITY = 4;
-	public static final int INDEX_PRESSURE = 3;
-	public static final int INDEX_VISLIGHT = 2;
-	public static final int INDEX_IRLIGHT = 1;
-	public static final int INDEX_UVINDEX = 0;
+	public static final int ID_BIT_TEMP = 5;
+	public static final int ID_BIT_HUMIDITY = 4;
+	public static final int ID_BIT_PRESSURE = 3;
+	public static final int ID_BIT_VISLIGHT = 2;
+	public static final int ID_BIT_IRLIGHT = 1;
+	public static final int ID_BIT_UVINDEX = 0;
 	
 	// declare Bluetooth LE parts
 	private BluetoothDevice bleDevice;
@@ -150,50 +140,17 @@ public class SensorInterfaceActivity extends Activity {
 			byte[] RxBuf = bleCharacteristic.getValue();
 			int RxBufIndex = 0;
 			while(RxBufIndex < RxBuf.length) {
-				int dataOffset = RxBufIndex + 1;
-				switch(RxBuf[RxBufIndex]) {
-				case REQUEST_BIT_TEMP:
-					// the next 4 bytes are temperature data
-					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
-																 dataOffset);
-					sensorPack.get(INDEX_TEMP).setData(data);
-					break;
-				case REQUEST_BIT_HUMIDITY:
-					// the next 4 bytes are humidity data
-					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
-																	 dataOffset);
-					sensorPack.get(INDEX_HUMIDITY).setData(data);
-					break;
-				case REQUEST_BIT_PRESSURE:
-					// the next 4 bytes are pressure data
-					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
-																	 dataOffset);
-					sensorPack.get(INDEX_PRESSURE).setData(data);
-					break;
-				case REQUEST_BIT_VISLIGHT:
-					// the next 4 bytes are visible light data
-					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
-																	 dataOffset);
-					sensorPack.get(INDEX_VISLIGHT).setData(data);
-					break;
-				case REQUEST_BIT_IRLIGHT:
-					// the next 4 bytes are IR light data
-					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
-																	dataOffset);
-					sensorPack.get(INDEX_IRLIGHT).setData(data);
-					break;
-				case REQUEST_BIT_UVINDEX:
-					// the next 4 bytes are UV index data
-					data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
-																	dataOffset);
-					sensorPack.get(INDEX_UVINDEX).setData(data);
-					break;
-				default:
-					Log.e("onCharacteristicChanged()", "No sensor identifier read");
-					break;
+				int dataOffset = RxBufIndex + 1; // we have one id bit
+				// update sensor value
+				for(Sensor sensor : sensorPack) {
+					if(((int) RxBuf[RxBufIndex]) == sensor.id_bit) {
+						data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
+								dataOffset);
+						sensor.setData(data);
+						break;
+					}
 				}
-				
-				RxBufIndex += 5; // 1 byte for sensor identifier + 4 bytes for sensor data
+				RxBufIndex += 5; // 1 byte for sensor id + 4 bytes for sensor data
 			}
 			
 			// update UI
@@ -202,20 +159,20 @@ public class SensorInterfaceActivity extends Activity {
 	};
 	
 	private void sensorPack_init() {
-		Sensor temp = new Sensor(LABEL_SENSOR_TEMP, UNITS_TEMP, REQUEST_BIT_TEMP);
-		Sensor humidity = new Sensor(LABEL_SENSOR_HUMIDITY, UNITS_HUMIDITY, REQUEST_BIT_HUMIDITY);
-		Sensor pressure = new Sensor(LABEL_SENSOR_PRESSURE, UNITS_PRESSURE, REQUEST_BIT_PRESSURE);
-		Sensor visLight = new Sensor(LABEL_SENSOR_VISLIGHT, UNITS_VISLIGHT, REQUEST_BIT_VISLIGHT);
-		Sensor irLight = new Sensor(LABEL_SENSOR_IRLIGHT, UNITS_IRLIGHT, REQUEST_BIT_IRLIGHT);
-		Sensor uvIndex = new Sensor(LABEL_SENSOR_UVINDEX, UNITS_UVINDEX, REQUEST_BIT_UVINDEX);
+		Sensor temp = new Sensor(LABEL_SENSOR_TEMP, UNITS_TEMP, ID_BIT_TEMP);
+		Sensor humidity = new Sensor(LABEL_SENSOR_HUMIDITY, UNITS_HUMIDITY, ID_BIT_HUMIDITY);
+		Sensor pressure = new Sensor(LABEL_SENSOR_PRESSURE, UNITS_PRESSURE, ID_BIT_PRESSURE);
+		Sensor visLight = new Sensor(LABEL_SENSOR_VISLIGHT, UNITS_VISLIGHT, ID_BIT_VISLIGHT);
+		Sensor irLight = new Sensor(LABEL_SENSOR_IRLIGHT, UNITS_IRLIGHT, ID_BIT_IRLIGHT);
+		Sensor uvIndex = new Sensor(LABEL_SENSOR_UVINDEX, UNITS_UVINDEX, ID_BIT_UVINDEX);
 
 		sensorPack = new ArrayList<Sensor>();
-		sensorPack.add(temp);
-		sensorPack.add(humidity);
-		sensorPack.add(pressure);
-		sensorPack.add(visLight);
-		sensorPack.add(irLight);
-		sensorPack.add(uvIndex);
+		sensorPack.add(ID_BIT_TEMP, temp);
+		sensorPack.add(ID_BIT_HUMIDITY, humidity);
+		sensorPack.add(ID_BIT_PRESSURE, pressure);
+		sensorPack.add(ID_BIT_VISLIGHT, visLight);
+		sensorPack.add(ID_BIT_IRLIGHT, irLight);
+		sensorPack.add(ID_BIT_UVINDEX, uvIndex);
 	}
 	
 	@Override
@@ -238,11 +195,32 @@ public class SensorInterfaceActivity extends Activity {
 				}
 				ListView lv = (ListView) view;
 				
-				Sensor sensor = (Sensor) lv.getItemAtPosition(position);
+				Sensor clickedSensor = (Sensor) lv.getItemAtPosition(position);
 				Log.d("onItemClick()", "Clicked item at position " + position);
 				Log.d("onItemClick()", "Function id = " + id);
-				Log.d("onItemClick()", "Object id = " + sensor.id);
-				Log.d("onItemClick()", "Sensor name = " + sensor.getName());
+				Log.d("onItemClick()", "Object id = " + clickedSensor.id_bit);
+				Log.d("onItemClick()", "Sensor name = " + clickedSensor.getName());
+				
+				if(bleTx == null) {
+					return;
+				}
+				
+				byte[] txByte = {0};
+				for(Sensor sensor : sensorPack) {
+					if(sensor.isOn()) {
+						txByte[0] |= (byte) (0x1 << sensor.id_bit);
+					}
+				}
+				
+				// update TX characteristic
+				bleTx.setValue(txByte);
+				
+				// send byte
+				if(bleGatt.writeCharacteristic(bleTx)) {
+					Log.i("onItemClick()", "Sensor request byte sent");
+				} else {
+					Log.e("onItemClick()", "Couldn't send request byte");
+				}
 			}
 		});
 				
