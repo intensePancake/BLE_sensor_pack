@@ -31,7 +31,7 @@
 
 #define NUM_SENSORS 6
 
-#define TIME_BETWEEN_SENDS 2000 // milliseconds
+#define TIME_BETWEEN_SENDS 1000 // milliseconds
 
 // sensor bit assignments in request byte
 #define TEMP_REQ_BIT 5
@@ -209,9 +209,11 @@ void updateSensorState(uint8_t *RxBuf, uint8_t RxBufsize)
     for(int i = 0; i < RxBufsize; i++) {
         // determine which sensors to read
 	req = RxBuf[i];
+#ifdef DEBUG
         Serial.print("Received byte: 0x");
         Serial.print(RxBuf[i], HEX);
         Serial.println();
+#endif
         state_T = (req >> TEMP_REQ_BIT) & 0x1;
 	state_H = (req >> HUMIDITY_REQ_BIT) & 0x1;
 	state_P = (req >> PRESSURE_REQ_BIT) & 0x1;

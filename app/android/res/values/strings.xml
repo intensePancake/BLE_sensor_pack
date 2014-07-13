@@ -8,18 +8,11 @@
     <string name="disconnected">Disconnected</string>
     <string name="state_change_prefix">Unknown connection state: </string>
     
-    <string name="label_sensor_temp">Temp</string>
-    <string name="label_sensor_humidity">Humidity</string>
-    <string name="label_sensor_pressure">Pressure</string>
-    <string name="label_sensor_vislight">Visible Light</string>
-    <string name="label_sensor_irlight">IR Light</string>
-    <string name="label_sensor_uvindex">UV Index</string>
-    
     <string name="header_sensor">Sensor</string>
     <string name="header_value">Value</string>
     
-    <string name="state_sensor_on">On</string>
-    <string name="state_sensor_off">Off</string>
+    <string name="sensor_state_on">On</string>
+    <string name="sensor_state_off">Off</string>
     
     <string name="error_bt_not_supported">Device doesn\'t support Bluetooth!</string>
     <string name="error_ble_not_supported">Device doesn\'t support Bluetooth LE!</string>

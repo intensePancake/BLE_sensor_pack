@@ -2,13 +2,14 @@ package gharvey.blesensorpack;
 
 public class Sensor {
 	private String name;
-	private float data;
+	private Float data;
 	private String units;
 	private boolean enable;
 	protected int id_bit;
 	
 	public Sensor(String name, String units, int id_bit) {
 		this.name = name;
+		this.data = null;
 		this.units = units;
 		this.enable = false;
 		this.id_bit = id_bit;
@@ -23,12 +24,22 @@ public class Sensor {
 	}
 	
 	public float getData() {
-		return this.data;
+		if(this.data != null) {
+			return this.data.floatValue();
+		} else {
+			return Float.valueOf(Float.NaN);
+		}
 	}
 	
 	public void setData(float value) {
-		this.data = value;
+		this.data = Float.valueOf(value);
 	}
+	
+
+	public boolean hasData() {
+		return (this.data != null);
+	}
+
 	
 	public void setUnits(String units) {
 		this.units = units;

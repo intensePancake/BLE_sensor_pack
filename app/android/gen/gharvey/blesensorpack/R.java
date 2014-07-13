@@ -10,6 +10,11 @@ package gharvey.blesensorpack;
 public final class R {
     public static final class attr {
     }
+    public static final class color {
+        public static final int blue=0x7f070002;
+        public static final int green=0x7f070001;
+        public static final int red=0x7f070000;
+    }
     public static final class dimen {
         /**  Default screen margins, per the Android Design guidelines. 
 
@@ -25,12 +30,13 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int connection_state=0x7f080001;
-        public static final int data=0x7f080003;
-        public static final int listView=0x7f080000;
-        public static final int name=0x7f080002;
-        public static final int units=0x7f080005;
-        public static final int value=0x7f080004;
+        public static final int connection_state=0x7f090001;
+        public static final int data=0x7f090003;
+        public static final int listView=0x7f090000;
+        public static final int name=0x7f090002;
+        public static final int state=0x7f090006;
+        public static final int units=0x7f090005;
+        public static final int value=0x7f090004;
     }
     public static final class layout {
         public static final int activity_sensor_interface=0x7f030000;
@@ -39,8 +45,8 @@ public final class R {
         public static final int sensor_row=0x7f030003;
     }
     public static final class menu {
-        public static final int sensor_interface=0x7f070000;
-        public static final int start=0x7f070001;
+        public static final int sensor_interface=0x7f080000;
+        public static final int start=0x7f080001;
     }
     public static final class string {
         public static final int action_settings=0x7f050002;
@@ -48,24 +54,18 @@ public final class R {
         public static final int btn_connect=0x7f050001;
         public static final int connected_prefix=0x7f050003;
         public static final int disconnected=0x7f050004;
-        public static final int error_ble_not_supported=0x7f050011;
-        public static final int error_bt_not_supported=0x7f050010;
-        public static final int error_no_device=0x7f050012;
-        public static final int error_no_services=0x7f050013;
-        public static final int error_rx_notifications=0x7f050015;
-        public static final int error_service_discovery=0x7f050014;
-        public static final int header_sensor=0x7f05000c;
-        public static final int header_value=0x7f05000d;
-        public static final int label_sensor_humidity=0x7f050007;
-        public static final int label_sensor_irlight=0x7f05000a;
-        public static final int label_sensor_pressure=0x7f050008;
-        public static final int label_sensor_temp=0x7f050006;
-        public static final int label_sensor_uvindex=0x7f05000b;
-        public static final int label_sensor_vislight=0x7f050009;
+        public static final int error_ble_not_supported=0x7f05000b;
+        public static final int error_bt_not_supported=0x7f05000a;
+        public static final int error_no_device=0x7f05000c;
+        public static final int error_no_services=0x7f05000d;
+        public static final int error_rx_notifications=0x7f05000f;
+        public static final int error_service_discovery=0x7f05000e;
+        public static final int header_sensor=0x7f050006;
+        public static final int header_value=0x7f050007;
+        public static final int sensor_state_off=0x7f050009;
+        public static final int sensor_state_on=0x7f050008;
         public static final int state_change_prefix=0x7f050005;
-        public static final int state_sensor_off=0x7f05000f;
-        public static final int state_sensor_on=0x7f05000e;
-        public static final int title_activity_sensor_interface=0x7f050016;
+        public static final int title_activity_sensor_interface=0x7f050010;
     }
     public static final class style {
         /** 

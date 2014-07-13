@@ -16,7 +16,6 @@
 package gharvey.blesensorpack;
 
 import java.util.UUID;
-import java.lang.Byte;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -25,8 +24,6 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -35,7 +32,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
@@ -53,7 +49,7 @@ public class SensorInterfaceActivity extends Activity {
 	public static final String LABEL_DEVICE_ADDR = "BLE_DEVICE_ADDRESS";
 	
 	// define labels for the sensors on the sensor pack
-	public static final String LABEL_SENSOR_TEMP = "Temp";
+	public static final String LABEL_SENSOR_TEMP = "Temperature";
 	public static final String LABEL_SENSOR_HUMIDITY = "Humidity";
 	public static final String LABEL_SENSOR_PRESSURE = "Pressure";
 	public static final String LABEL_SENSOR_VISLIGHT = "Visible Light";
@@ -77,6 +73,7 @@ public class SensorInterfaceActivity extends Activity {
 	public static final int ID_BIT_UVINDEX = 0;
 	
 	// declare Bluetooth LE parts
+	private BluetoothAdapter btAdapter;
 	private BluetoothDevice bleDevice;
 	private BluetoothGatt bleGatt;
 	private BluetoothGattCharacteristic bleTx;
@@ -100,25 +97,29 @@ public class SensorInterfaceActivity extends Activity {
 				// inform the user of the connection
 				//shortToast(R.string.connected_prefix + bleDevice.getName());
 				connectionStateView.setText(getString(R.string.connected_prefix) + bleDevice.getName());
+				Log.i("SensorInterfaceActivity", "Connected to GATT server");
 				
 				if(!bleGatt.discoverServices()) {
 					shortToast(R.string.error_no_services);
+					Log.e("SensorInterfaceActivity", "No services discovered");
 				}
 			} else if(newState == BluetoothGatt.STATE_DISCONNECTED) {
 				//shortToast(R.string.disconnected);
 				connectionStateView.setText("Disconnected");
+				Log.d("SensorInterfaceActivity", "Disconnected");
 			} else {
 				//shortToast(R.string.state_change_prefix + newState);
 				connectionStateView.setText("Unknown connection state");
-				Log.e("onConnectionStateChange()", "Unknown state: " + newState);
+				Log.e("SensorInterfaceActivity", "Unknown state: " + newState);
 			}
 		}
 	
 		@Override
 		public void onServicesDiscovered(BluetoothGatt bleGatt, int status) {
 			super.onServicesDiscovered(bleGatt, status);
+			
 			if(status != BluetoothGatt.GATT_SUCCESS) {
-				Log.e("onServicesDiscovered()", "Failure: service discovery");
+				Log.e("SensorInterfaceActivity", "Failure: service discovery");
 			}
 			
 			// get characteristics
@@ -127,16 +128,16 @@ public class SensorInterfaceActivity extends Activity {
 			
 			// enable notifications for RX characteristic
 			if(!bleGatt.setCharacteristicNotification(bleRx, true)) {
-				Log.e("onServicesDiscovered()", "Can't set RX characteristic notifications");
+				Log.e("SensorInterfaceActivity", "Can't set RX characteristic notifications");
 			}
 			BluetoothGattDescriptor bleGattDesc = bleRx.getDescriptor(CLIENT_UUID);
 			if(bleGattDesc != null) {
 				bleGattDesc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
 				if(!bleGatt.writeDescriptor(bleGattDesc)) {
-					Log.e("onServicesDiscovered()", "Can't write RX descriptor value");
+					Log.e("SensorInterfaceActivity", "Can't write RX descriptor value");
 				}
 			} else {
-				Log.e("onServicesDiscovered()", "Can't get RX descriptor");
+				Log.e("SensorInterfaceActivity", "Can't get RX descriptor");
 			}
 		}
 		
@@ -145,18 +146,23 @@ public class SensorInterfaceActivity extends Activity {
 		public void onCharacteristicChanged(BluetoothGatt bleGatt,
 							BluetoothGattCharacteristic bleCharacteristic) {
 			super.onCharacteristicChanged(bleGatt, bleCharacteristic);
+			Log.d("SensorInterfaceActivity", "Received data");
 			
-			Log.d("onCharacteristicChanged()", "Received data");
 			float data;
 			byte[] RxBuf = bleCharacteristic.getValue();
+			
 			int RxBufIndex = 0;
 			while(RxBufIndex < RxBuf.length) {
-				int dataOffset = RxBufIndex + 1; // we have one id bit
 				// update sensor value
 				for(Sensor sensor : sensorPack) {
 					if(((int) RxBuf[RxBufIndex]) == sensor.id_bit) {
-						data = bleCharacteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT,
-								dataOffset);
+						// this sensor just sent data, so it must be on
+						sensor.turnOn(); // verify that the sensor is on
+						int bits = ((RxBuf[RxBufIndex + 1] & 0xFF)) |
+								   ((RxBuf[RxBufIndex + 2] & 0xFF) << 8) |
+								   ((RxBuf[RxBufIndex + 3] & 0xFF) << 16) |
+								   ((RxBuf[RxBufIndex + 4] & 0xFF) << 24);
+						data = Float.intBitsToFloat(bits);
 						sensor.setData(data);
 						break;
 					}
@@ -165,7 +171,20 @@ public class SensorInterfaceActivity extends Activity {
 			}
 			
 			// update UI
-			//displayAdapter.notifyDataSetChanged();
+			updateUI();
+		}
+		
+		// called when write is performed to characteristic
+		@Override
+		public void onCharacteristicWrite(BluetoothGatt bleGatt,
+				BluetoothGattCharacteristic bleCharacteristic, int status) {
+			Log.d("SensorInterfaceActivity", "Characteristic write");
+			if(bleGatt == null) {
+				Log.e("SensorInterfaceActivity", "bleGatt is null");
+			}
+			if(status != BluetoothGatt.GATT_SUCCESS) {
+				Log.w("SensorInterfaceActivity", "Write unsuccessful");
+			}
 		}
 	};
 	
@@ -178,13 +197,7 @@ public class SensorInterfaceActivity extends Activity {
 		sensorPack[5] = new Sensor(LABEL_SENSOR_UVINDEX, UNITS_UVINDEX, ID_BIT_UVINDEX);
 	}
 	
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_sensor_interface);
-
-		sensorPack_init();
-
+	public void display_init() {
 		// initialize user interface
 		displayAdapter = new DisplayAdapter(this, sensorPack);
 		listView = (ListView) findViewById(R.id.listView);
@@ -198,53 +211,78 @@ public class SensorInterfaceActivity extends Activity {
 		listView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				Log.d("SensorInterfaceActivity", "User clicked list item");
 				if(view == null) {
 					view = (ListView) displayAdapter.getView(position, view, parent);
 				}
 				
 				Sensor clickedSensor = (Sensor) listView.getItemAtPosition(position);
+				Log.v("SensorInterfaceActivity", "Toggling sensor state");
 				clickedSensor.toggle();
 				
 
 				// send data over Bluetooth LE
+				Log.v("SensorInterfaceActivity", "Constructing byte to send");
 				if(bleTx == null) {
+					Log.e("SensorInterfaceActivity", "No Tx characteristic");
 					return;
 				}
 				
 				byte[] txByte = {0};
 				for(Sensor sensor : sensorPack) {
 					if(sensor.isOn()) {
-						Toast.makeText(SensorInterfaceActivity.this, sensor.getName(), Toast.LENGTH_SHORT).show();
 						txByte[0] |= (byte) (0x1 << sensor.id_bit);
 					}
 				}
 				
 				// update TX characteristic
+				Log.v("SensorInterfaceActivity", "Setting Tx value: 0x" + Integer.toHexString((int) txByte[0]));
 				bleTx.setValue(txByte);
 				
-				Toast.makeText(SensorInterfaceActivity.this, "txByte = " + Byte.toString(txByte[0]),
-							   Toast.LENGTH_SHORT).show();
-				
 				// send byte
-				//if(bleGatt.writeCharacteristic(bleTx)) {
-				if(false) {
-					Log.i("onItemClick()", "Sensor request byte sent");
+				Log.v("SensorInterfaceActivity", "Sending the data");
+				if(bleGatt.writeCharacteristic(bleTx)) {
+					Log.i("SensorInterfaceActivity", "Sensor request byte sent");
 				} else {
-					Log.e("onItemClick()", "Couldn't send request byte");
+					Log.e("SensorInterfaceActivity", "Couldn't send request byte");
 				}
+				
+				updateUI();
 			}
 		});
-				
+	}
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_sensor_interface);
+		
+		sensorPack_init();
+		display_init();
+
 		// get the intent used to start this activity
 		final Intent incoming_i = getIntent();
 		bleDevAddr = incoming_i.getStringExtra(LABEL_DEVICE_ADDR);
 		
+		// initialize Bluetooth LE communications
+		/*
 		final BluetoothManager btManager =
 				(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 		final BluetoothAdapter btAdapter = btManager.getAdapter();
-				
+		*/
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
+
+		Log.d("SensorInterfaceActivity", "Getting device at address " + bleDevAddr);
 		bleDevice = btAdapter.getRemoteDevice(bleDevAddr);
-		bleDevice.connectGatt(this, false, gattCallback);
+		bleGatt = bleDevice.connectGatt(this, false, gattCallback);
+	}
+	
+	public void updateUI() {
+		runOnUiThread(new Runnable() {
+			public void run() {
+				displayAdapter.notifyDataSetChanged();
+			}
+		});
 	}
 	
 	@Override
@@ -289,6 +327,7 @@ public class SensorInterfaceActivity extends Activity {
 		switch (item.getItemId()) {
 	    // Respond to the action bar's Up/Home button
 	    case android.R.id.home:
+	    	Log.d("SensorInterfaceActivity", "User pressed 'Up'");
 	    	bleClose();
 	        NavUtils.navigateUpFromSameTask(this);
 	        return true;

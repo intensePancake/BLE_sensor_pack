@@ -28,8 +28,6 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAdapter.LeScanCallback;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -59,9 +57,12 @@ public class StartActivity extends Activity {
         bleHandler = new Handler();
 		
 		// Initialize Bluetooth adapter
+        /*
         final BluetoothManager btManager =
 				(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 		btAdapter = btManager.getAdapter();
+		*/
+        btAdapter = BluetoothAdapter.getDefaultAdapter();
 		
 		// check if Bluetooth is supported on the device
 		if(btAdapter == null) {
@@ -76,7 +77,7 @@ public class StartActivity extends Activity {
 			finish();
 		}
 		
-		Log.d("onCreate()", "Setup complete");
+		Log.d("StartActivity", "Setup complete");
     }
 	
 	@Override
@@ -125,14 +126,14 @@ public class StartActivity extends Activity {
 	 * Called when the user clicks the Connect button.
 	 */
 	public void bleScan(View view) {
-		Log.v("bleScan()", "In bleScan()");
+		Log.v("StartActivity", "In bleScan()");
 		// set up timeout
 		bleHandler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				if(scanning) {
 					scanning = false;
-					Log.v("bleScan()", "Stopping the scan");
+					Log.v("StartActivity", "Stopping the scan");
 					btAdapter.stopLeScan(bleScanCallback);
 					
 					// let the user know we couldn't find the device
@@ -144,9 +145,9 @@ public class StartActivity extends Activity {
 		
 		// start the scan
 		scanning = true;
-		Log.v("bleScan()", "Starting the scan");
+		Log.v("StartActivity", "Starting the scan");
 		btAdapter.startLeScan(bleScanCallback);
-		Log.v("bleScan()", "Leaving bleScan()");
+		Log.v("StartActivity", "Leaving bleScan()");
 		//btAdapter.startLeScan(UUIDs, bleScanCallback);
 	}
 	
@@ -154,11 +155,10 @@ public class StartActivity extends Activity {
 			new LeScanCallback() {
 		@Override
 		public void onLeScan(final BluetoothDevice bleDevice, int rssi,
-							 byte[] scanRecord) {
-			Log.d("bleScanCallback", "Device found.");
-			
+							 byte[] scanRecord) {			
 			// check if the device is the sensor pack
 			if(isSensorPack(bleDevice, scanRecord)) {
+				Log.d("StartActivity", "Found Sensor Pack");
 				if(scanning) {
 					btAdapter.stopLeScan(bleScanCallback);
 					scanning = false;
@@ -171,7 +171,7 @@ public class StartActivity extends Activity {
 				
 				startActivity(sensorInterface_i);
 			} else {
-				Log.d("bleScanCallback", "Found wrong device");
+				Log.d("StartActivity", "Found other device");
 			}
 		}
 	};
@@ -179,13 +179,11 @@ public class StartActivity extends Activity {
 	// still need to implement this
 	private boolean isSensorPack(BluetoothDevice btDevice, byte[] scanRecord) {
 		if(!(btDevice.getName().contentEquals(BLE_DEVICE_NAME))) {			
-			Log.d("isSensorPack()", "Found other device");
 			return false;
 		}
 		// the device name is correct
 		if(parseUUIDs(scanRecord).contains(SensorInterfaceActivity.UART_UUID)) {
 			// the device offers the UART service
-			Log.d("isSensorPack()", "Found Sensor Pack!");
 			return true;
 		}
 		return false;
