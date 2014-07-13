@@ -15,8 +15,8 @@
 
 package gharvey.blesensorpack;
 
-import java.util.ArrayList;
 import java.util.UUID;
+import java.lang.Byte;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -29,22 +29,26 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class SensorInterfaceActivity extends Activity {
-	
+
 	public static UUID UART_UUID = UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
     public static UUID TX_UUID = UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
     public static UUID RX_UUID = UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E");
     public static UUID CLIENT_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-	
+
 	public static final String LABEL_DEVICE_NAME = "BLE_DEVICE_NAME";
 	public static final String LABEL_DEVICE_ADDR = "BLE_DEVICE_ADDRESS";
 	
@@ -58,8 +62,8 @@ public class SensorInterfaceActivity extends Activity {
 	
 	// define unit strings to use for each sensor
 	public static final String UNITS_TEMP = (char) 0x00B0 + "C"; // degrees C
-	public static final String UNITS_HUMIDITY = "%";
-	public static final String UNITS_PRESSURE = "atm"; // atmospheres
+	public static final String UNITS_HUMIDITY = " %";
+	public static final String UNITS_PRESSURE = " atm"; // atmospheres
 	public static final String UNITS_VISLIGHT = ""; // dimensionless, relative value
 	public static final String UNITS_IRLIGHT = ""; // dimensionless, relative value
 	public static final String UNITS_UVINDEX = ""; // dimensionless, relative value
@@ -79,27 +83,33 @@ public class SensorInterfaceActivity extends Activity {
 	private BluetoothGattCharacteristic bleRx;
 	
 	private String bleDevAddr;
-	
+
+	protected static final int NUM_SENSORS = 6;
+	private Sensor sensorPack[] = new Sensor[NUM_SENSORS];
 	private DisplayAdapter displayAdapter;
 	private ListView listView;
-	private ArrayList<Sensor> sensorPack;
 			
 	private BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
 		@Override
 		public void onConnectionStateChange(BluetoothGatt bleGatt, int status, int newState) {
 			super.onConnectionStateChange(bleGatt, status, newState);
+
+			TextView connectionStateView = (TextView) findViewById(R.id.connection_state);
+			
 			if(newState == BluetoothGatt.STATE_CONNECTED) {
 				// inform the user of the connection
-				shortToast(R.string.connected_prefix + bleDevice.getName());
+				//shortToast(R.string.connected_prefix + bleDevice.getName());
+				connectionStateView.setText(getString(R.string.connected_prefix) + bleDevice.getName());
 				
 				if(!bleGatt.discoverServices()) {
 					shortToast(R.string.error_no_services);
 				}
-				
 			} else if(newState == BluetoothGatt.STATE_DISCONNECTED) {
-				shortToast(R.string.disconnected);
+				//shortToast(R.string.disconnected);
+				connectionStateView.setText("Disconnected");
 			} else {
-				shortToast(R.string.state_change_prefix + newState);
+				//shortToast(R.string.state_change_prefix + newState);
+				connectionStateView.setText("Unknown connection state");
 				Log.e("onConnectionStateChange()", "Unknown state: " + newState);
 			}
 		}
@@ -130,6 +140,7 @@ public class SensorInterfaceActivity extends Activity {
 			}
 		}
 		
+		// called when data is received over Bluetooth LE
 		@Override
 		public void onCharacteristicChanged(BluetoothGatt bleGatt,
 							BluetoothGattCharacteristic bleCharacteristic) {
@@ -154,53 +165,48 @@ public class SensorInterfaceActivity extends Activity {
 			}
 			
 			// update UI
-			displayAdapter.notifyDataSetChanged();
+			//displayAdapter.notifyDataSetChanged();
 		}
 	};
 	
 	private void sensorPack_init() {
-		Sensor temp = new Sensor(LABEL_SENSOR_TEMP, UNITS_TEMP, ID_BIT_TEMP);
-		Sensor humidity = new Sensor(LABEL_SENSOR_HUMIDITY, UNITS_HUMIDITY, ID_BIT_HUMIDITY);
-		Sensor pressure = new Sensor(LABEL_SENSOR_PRESSURE, UNITS_PRESSURE, ID_BIT_PRESSURE);
-		Sensor visLight = new Sensor(LABEL_SENSOR_VISLIGHT, UNITS_VISLIGHT, ID_BIT_VISLIGHT);
-		Sensor irLight = new Sensor(LABEL_SENSOR_IRLIGHT, UNITS_IRLIGHT, ID_BIT_IRLIGHT);
-		Sensor uvIndex = new Sensor(LABEL_SENSOR_UVINDEX, UNITS_UVINDEX, ID_BIT_UVINDEX);
-
-		sensorPack = new ArrayList<Sensor>();
-		sensorPack.add(ID_BIT_TEMP, temp);
-		sensorPack.add(ID_BIT_HUMIDITY, humidity);
-		sensorPack.add(ID_BIT_PRESSURE, pressure);
-		sensorPack.add(ID_BIT_VISLIGHT, visLight);
-		sensorPack.add(ID_BIT_IRLIGHT, irLight);
-		sensorPack.add(ID_BIT_UVINDEX, uvIndex);
+		sensorPack[0] = new Sensor(LABEL_SENSOR_TEMP, UNITS_TEMP, ID_BIT_TEMP);
+		sensorPack[1] = new Sensor(LABEL_SENSOR_HUMIDITY, UNITS_HUMIDITY, ID_BIT_HUMIDITY);
+		sensorPack[2] = new Sensor(LABEL_SENSOR_PRESSURE, UNITS_PRESSURE, ID_BIT_PRESSURE);
+		sensorPack[3] = new Sensor(LABEL_SENSOR_VISLIGHT, UNITS_VISLIGHT, ID_BIT_VISLIGHT);
+		sensorPack[4] = new Sensor(LABEL_SENSOR_IRLIGHT, UNITS_IRLIGHT, ID_BIT_IRLIGHT);
+		sensorPack[5] = new Sensor(LABEL_SENSOR_UVINDEX, UNITS_UVINDEX, ID_BIT_UVINDEX);
 	}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_sensor_interface);
-		
+
 		sensorPack_init();
-		
+
 		// initialize user interface
-		listView = (ListView) findViewById(R.id.listview);
 		displayAdapter = new DisplayAdapter(this, sensorPack);
+		listView = (ListView) findViewById(R.id.listView);
+		
+		// set up header
+		LayoutInflater inflater = getLayoutInflater();
+		View header = inflater.inflate(R.layout.sensor_header, null);
+		listView.addHeaderView(header, null, false);
 		listView.setAdapter(displayAdapter);
+		
 		listView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position,
-					long id) {
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				if(view == null) {
 					view = (ListView) displayAdapter.getView(position, view, parent);
 				}
-				ListView lv = (ListView) view;
 				
-				Sensor clickedSensor = (Sensor) lv.getItemAtPosition(position);
-				Log.d("onItemClick()", "Clicked item at position " + position);
-				Log.d("onItemClick()", "Function id = " + id);
-				Log.d("onItemClick()", "Object id = " + clickedSensor.id_bit);
-				Log.d("onItemClick()", "Sensor name = " + clickedSensor.getName());
+				Sensor clickedSensor = (Sensor) listView.getItemAtPosition(position);
+				clickedSensor.toggle();
 				
+
+				// send data over Bluetooth LE
 				if(bleTx == null) {
 					return;
 				}
@@ -208,6 +214,7 @@ public class SensorInterfaceActivity extends Activity {
 				byte[] txByte = {0};
 				for(Sensor sensor : sensorPack) {
 					if(sensor.isOn()) {
+						Toast.makeText(SensorInterfaceActivity.this, sensor.getName(), Toast.LENGTH_SHORT).show();
 						txByte[0] |= (byte) (0x1 << sensor.id_bit);
 					}
 				}
@@ -215,8 +222,12 @@ public class SensorInterfaceActivity extends Activity {
 				// update TX characteristic
 				bleTx.setValue(txByte);
 				
+				Toast.makeText(SensorInterfaceActivity.this, "txByte = " + Byte.toString(txByte[0]),
+							   Toast.LENGTH_SHORT).show();
+				
 				// send byte
-				if(bleGatt.writeCharacteristic(bleTx)) {
+				//if(bleGatt.writeCharacteristic(bleTx)) {
+				if(false) {
 					Log.i("onItemClick()", "Sensor request byte sent");
 				} else {
 					Log.e("onItemClick()", "Couldn't send request byte");
@@ -237,8 +248,23 @@ public class SensorInterfaceActivity extends Activity {
 	}
 	
 	@Override
+	public void onPause() {
+		super.onPause();
+		closeActivity();
+	}
+
+	@Override
 	public void onStop() {
 		super.onStop();
+		closeActivity();
+	}
+	
+	public void closeActivity() {
+		bleClose();
+		finish();
+	}
+	
+	public void bleClose() {
 		if(bleGatt != null) {
 			bleGatt.disconnect();
 			bleGatt.close();
@@ -246,7 +272,6 @@ public class SensorInterfaceActivity extends Activity {
 			bleTx = null;
 			bleRx = null;
 		}
-		finish();
 	}
 
 	@Override
@@ -261,10 +286,14 @@ public class SensorInterfaceActivity extends Activity {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
-		}
+		switch (item.getItemId()) {
+	    // Respond to the action bar's Up/Home button
+	    case android.R.id.home:
+	    	bleClose();
+	        NavUtils.navigateUpFromSameTask(this);
+	        return true;
+	    }
+
 		return super.onOptionsItemSelected(item);
 	}
 	

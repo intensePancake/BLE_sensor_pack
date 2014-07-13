@@ -209,7 +209,10 @@ void updateSensorState(uint8_t *RxBuf, uint8_t RxBufsize)
     for(int i = 0; i < RxBufsize; i++) {
         // determine which sensors to read
 	req = RxBuf[i];
-	state_T = (req >> TEMP_REQ_BIT) & 0x1;
+        Serial.print("Received byte: 0x");
+        Serial.print(RxBuf[i], HEX);
+        Serial.println();
+        state_T = (req >> TEMP_REQ_BIT) & 0x1;
 	state_H = (req >> HUMIDITY_REQ_BIT) & 0x1;
 	state_P = (req >> PRESSURE_REQ_BIT) & 0x1;
 	state_Vis = (req >> VIS_LIGHT_REQ_BIT) & 0x1;

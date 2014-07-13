@@ -49,4 +49,12 @@ public class Sensor {
 	public boolean isOn() {
 		return this.enable;
 	}
+	
+	public void toggle() {
+		if(this.isOn()) {
+			this.turnOff();
+		} else {
+			this.turnOn();
+		}
+	}
 }

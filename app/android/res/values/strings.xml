@@ -4,7 +4,7 @@
     <string name="app_name">BLE Sensor Pack</string>
     <string name="btn_connect">Connect</string>
     <string name="action_settings">Settings</string>
-    <string name="connected_prefix">Connected to </string>
+    <string name="connected_prefix">Connected to&#160;</string>
     <string name="disconnected">Disconnected</string>
     <string name="state_change_prefix">Unknown connection state: </string>
     
@@ -15,12 +15,8 @@
     <string name="label_sensor_irlight">IR Light</string>
     <string name="label_sensor_uvindex">UV Index</string>
     
-    <string name="units_temp">50&#x00B0; C</string>
-    <string name="units_humidity">%</string>
-    <string name="units_pressure">atm</string>
-    <string name="units_vislight"></string>
-    <string name="units_irlight"></string>
-    <string name="units_uvindex"></string>
+    <string name="header_sensor">Sensor</string>
+    <string name="header_value">Value</string>
     
     <string name="state_sensor_on">On</string>
     <string name="state_sensor_off">Off</string>
@@ -32,6 +28,6 @@
     <string name="error_service_discovery">Failed service discovery: status </string>
     <string name="error_rx_notifications">Can\'t receive data</string>
     
-    <string name="title_activity_sensor_interface">SensorInterfaceActivity</string>
+    <string name="title_activity_sensor_interface">BLE Sensor Pack</string>
 
 </resources>

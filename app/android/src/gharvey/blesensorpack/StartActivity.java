@@ -49,7 +49,7 @@ public class StartActivity extends Activity {
 
 	private static final String BLE_DEVICE_NAME = "UART";
 	public static final int REQUEST_ENABLE_BT = 1;
-	private static final long SCAN_TIMEOUT = 5000; // timeout in milliseconds
+	private static final long SCAN_TIMEOUT = 3000; // timeout in milliseconds
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,12 +130,14 @@ public class StartActivity extends Activity {
 		bleHandler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
-				scanning = false;
-				Log.v("bleScan()", "Stopping the scan");
-				btAdapter.stopLeScan(bleScanCallback);
-				
-				// let the user know we couldn't find the device
-				Toast.makeText(StartActivity.this, R.string.error_no_device, Toast.LENGTH_SHORT).show();
+				if(scanning) {
+					scanning = false;
+					Log.v("bleScan()", "Stopping the scan");
+					btAdapter.stopLeScan(bleScanCallback);
+					
+					// let the user know we couldn't find the device
+					Toast.makeText(StartActivity.this, R.string.error_no_device, Toast.LENGTH_SHORT).show();
+				}
 			}
 		}, SCAN_TIMEOUT);
 
@@ -176,7 +178,7 @@ public class StartActivity extends Activity {
 	
 	// still need to implement this
 	private boolean isSensorPack(BluetoothDevice btDevice, byte[] scanRecord) {
-		if(!(btDevice.getName().contentEquals(BLE_DEVICE_NAME))) {
+		if(!(btDevice.getName().contentEquals(BLE_DEVICE_NAME))) {			
 			Log.d("isSensorPack()", "Found other device");
 			return false;
 		}
@@ -258,10 +260,6 @@ public class StartActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
         return super.onOptionsItemSelected(item);
     }
 }
