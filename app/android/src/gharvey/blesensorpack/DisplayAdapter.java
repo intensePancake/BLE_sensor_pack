@@ -54,10 +54,10 @@ public class DisplayAdapter extends ArrayAdapter<Sensor> {
 			
 			if(sensor.isOn()) {
 				stateTextView.setText(R.string.sensor_state_on);
-				stateTextView.setTextColor(context.getResources().getColor(R.color.green));
+				stateTextView.setTextColor(context.getResources().getColor(android.R.color.holo_green_light));
 			} else {
 				stateTextView.setText(R.string.sensor_state_off);
-				stateTextView.setTextColor(context.getResources().getColor(R.color.red));
+				stateTextView.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
 			}
 		}
 		

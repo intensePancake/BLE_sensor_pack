@@ -14,6 +14,11 @@
     <string name="sensor_state_on">On</string>
     <string name="sensor_state_off">Off</string>
     
+    <string name="sensor_all_on">All On</string>
+    <string name="sensor_all_off">All Off</string>
+    
+    <string name="disconnect">Disconnect</string>
+    
     <string name="error_bt_not_supported">Device doesn\'t support Bluetooth!</string>
     <string name="error_ble_not_supported">Device doesn\'t support Bluetooth LE!</string>
     <string name="error_no_device">Can\'t find Sensor Pack</string>

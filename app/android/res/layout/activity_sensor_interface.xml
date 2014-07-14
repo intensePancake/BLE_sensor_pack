@@ -12,9 +12,44 @@
         android:layout_height="0dp" >
     </ListView>
     
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        style="@android:attr/buttonBarStyle" >
+        
+        <Button
+            android:layout_weight="0.5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/sensor_all_on"
+            android:onClick="allSensorsOn"
+            android:background="@android:color/holo_green_light"
+            style="@android:attr/buttonBarButtonStyle" />
+        
+        <Button
+            android:layout_weight="0.5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/sensor_all_off"
+            android:onClick="allSensorsOff"
+            android:background="@android:color/holo_red_dark"
+            style="@android:attr/buttonBarButtonStyle" />
+            
+    </LinearLayout>
+    
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/disconnect"
+        android:onClick="bleDisconnect"
+        android:background="@android:color/holo_blue_light" />
+    
     <TextView
         android:id="@+id/connection_state"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/disconnected" />
+    
 </LinearLayout>

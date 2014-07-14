@@ -51,22 +51,25 @@ public class SensorInterfaceActivity extends Activity {
 	// define labels for the sensors on the sensor pack
 	public static final String LABEL_SENSOR_TEMP = "Temperature";
 	public static final String LABEL_SENSOR_HUMIDITY = "Humidity";
+	public static final String LABEL_SENSOR_HEAT_INDEX = "Heat Index";
 	public static final String LABEL_SENSOR_PRESSURE = "Pressure";
 	public static final String LABEL_SENSOR_VISLIGHT = "Visible Light";
 	public static final String LABEL_SENSOR_IRLIGHT = "IR Light";
 	public static final String LABEL_SENSOR_UVINDEX = "UV Index";
 	
 	// define unit strings to use for each sensor
-	public static final String UNITS_TEMP = (char) 0x00B0 + "C"; // degrees C
+	public static final String UNITS_TEMP = (char) 0x00B0 + "F"; // degrees F
 	public static final String UNITS_HUMIDITY = " %";
+	public static final String UNITS_HEAT_INDEX = (char) 0x00B0 + "F"; // degrees F
 	public static final String UNITS_PRESSURE = " atm"; // atmospheres
 	public static final String UNITS_VISLIGHT = ""; // dimensionless, relative value
 	public static final String UNITS_IRLIGHT = ""; // dimensionless, relative value
 	public static final String UNITS_UVINDEX = ""; // dimensionless, relative value
 	
 	// define request bits for use with the Arduino code
-	public static final int ID_BIT_TEMP = 5;
-	public static final int ID_BIT_HUMIDITY = 4;
+	public static final int ID_BIT_TEMP = 6;
+	public static final int ID_BIT_HUMIDITY = 5;
+	public static final int ID_BIT_HEAT_INDEX = 4;
 	public static final int ID_BIT_PRESSURE = 3;
 	public static final int ID_BIT_VISLIGHT = 2;
 	public static final int ID_BIT_IRLIGHT = 1;
@@ -81,7 +84,7 @@ public class SensorInterfaceActivity extends Activity {
 	
 	private String bleDevAddr;
 
-	protected static final int NUM_SENSORS = 6;
+	protected static final int NUM_SENSORS = 7;
 	private Sensor sensorPack[] = new Sensor[NUM_SENSORS];
 	private DisplayAdapter displayAdapter;
 	private ListView listView;
@@ -191,10 +194,11 @@ public class SensorInterfaceActivity extends Activity {
 	private void sensorPack_init() {
 		sensorPack[0] = new Sensor(LABEL_SENSOR_TEMP, UNITS_TEMP, ID_BIT_TEMP);
 		sensorPack[1] = new Sensor(LABEL_SENSOR_HUMIDITY, UNITS_HUMIDITY, ID_BIT_HUMIDITY);
-		sensorPack[2] = new Sensor(LABEL_SENSOR_PRESSURE, UNITS_PRESSURE, ID_BIT_PRESSURE);
-		sensorPack[3] = new Sensor(LABEL_SENSOR_VISLIGHT, UNITS_VISLIGHT, ID_BIT_VISLIGHT);
-		sensorPack[4] = new Sensor(LABEL_SENSOR_IRLIGHT, UNITS_IRLIGHT, ID_BIT_IRLIGHT);
-		sensorPack[5] = new Sensor(LABEL_SENSOR_UVINDEX, UNITS_UVINDEX, ID_BIT_UVINDEX);
+		sensorPack[2] = new Sensor(LABEL_SENSOR_HEAT_INDEX, UNITS_HEAT_INDEX, ID_BIT_HEAT_INDEX);
+		sensorPack[3] = new Sensor(LABEL_SENSOR_PRESSURE, UNITS_PRESSURE, ID_BIT_PRESSURE);
+		sensorPack[4] = new Sensor(LABEL_SENSOR_VISLIGHT, UNITS_VISLIGHT, ID_BIT_VISLIGHT);
+		sensorPack[5] = new Sensor(LABEL_SENSOR_IRLIGHT, UNITS_IRLIGHT, ID_BIT_IRLIGHT);
+		sensorPack[6] = new Sensor(LABEL_SENSOR_UVINDEX, UNITS_UVINDEX, ID_BIT_UVINDEX);
 	}
 	
 	public void display_init() {
@@ -219,37 +223,39 @@ public class SensorInterfaceActivity extends Activity {
 				Sensor clickedSensor = (Sensor) listView.getItemAtPosition(position);
 				Log.v("SensorInterfaceActivity", "Toggling sensor state");
 				clickedSensor.toggle();
-				
 
-				// send data over Bluetooth LE
-				Log.v("SensorInterfaceActivity", "Constructing byte to send");
-				if(bleTx == null) {
-					Log.e("SensorInterfaceActivity", "No Tx characteristic");
-					return;
-				}
-				
-				byte[] txByte = {0};
-				for(Sensor sensor : sensorPack) {
-					if(sensor.isOn()) {
-						txByte[0] |= (byte) (0x1 << sensor.id_bit);
-					}
-				}
-				
-				// update TX characteristic
-				Log.v("SensorInterfaceActivity", "Setting Tx value: 0x" + Integer.toHexString((int) txByte[0]));
-				bleTx.setValue(txByte);
-				
-				// send byte
-				Log.v("SensorInterfaceActivity", "Sending the data");
-				if(bleGatt.writeCharacteristic(bleTx)) {
-					Log.i("SensorInterfaceActivity", "Sensor request byte sent");
-				} else {
-					Log.e("SensorInterfaceActivity", "Couldn't send request byte");
-				}
-				
+				sendSensorPackState();
 				updateUI();
 			}
 		});
+	}
+	
+	public void sendSensorPackState() {
+		// send data over Bluetooth LE
+		Log.v("SensorInterfaceActivity", "Constructing byte to send");
+		if(bleTx == null) {
+			Log.e("SensorInterfaceActivity", "No Tx characteristic");
+			return;
+		}
+
+		byte[] txByte = {0};
+		for(Sensor sensor : sensorPack) {
+			if(sensor.isOn()) {
+				txByte[0] |= (byte) (0x1 << sensor.id_bit);
+			}
+		}
+		
+		// update TX characteristic
+		Log.v("SensorInterfaceActivity", "Setting Tx value: 0x" + Integer.toHexString((int) txByte[0]));
+		bleTx.setValue(txByte);
+		
+		// send byte
+		Log.v("SensorInterfaceActivity", "Sending the data");
+		if(bleGatt.writeCharacteristic(bleTx)) {
+			Log.i("SensorInterfaceActivity", "Sensor request byte sent");
+		} else {
+			Log.e("SensorInterfaceActivity", "Couldn't send request byte");
+		}
 	}
 	
 	@Override
@@ -265,11 +271,6 @@ public class SensorInterfaceActivity extends Activity {
 		bleDevAddr = incoming_i.getStringExtra(LABEL_DEVICE_ADDR);
 		
 		// initialize Bluetooth LE communications
-		/*
-		final BluetoothManager btManager =
-				(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-		final BluetoothAdapter btAdapter = btManager.getAdapter();
-		*/
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 
 		Log.d("SensorInterfaceActivity", "Getting device at address " + bleDevAddr);
@@ -285,6 +286,22 @@ public class SensorInterfaceActivity extends Activity {
 		});
 	}
 	
+	public void allSensorsOn(View view) {
+		for(Sensor s : sensorPack) {
+			s.turnOn();
+		}
+		sendSensorPackState();
+		updateUI();
+	}
+	
+	public void allSensorsOff(View view) {
+		for(Sensor s : sensorPack) {
+			s.turnOff();
+		}
+		sendSensorPackState();
+		updateUI();
+	}
+	
 	@Override
 	public void onPause() {
 		super.onPause();
@@ -298,11 +315,14 @@ public class SensorInterfaceActivity extends Activity {
 	}
 	
 	public void closeActivity() {
-		bleClose();
-		finish();
+		bleDisconnect();
 	}
 	
-	public void bleClose() {
+	public void bleDisconnect(View view) {
+		bleDisconnect();
+	}
+	
+	public void bleDisconnect() {
 		if(bleGatt != null) {
 			bleGatt.disconnect();
 			bleGatt.close();
@@ -310,6 +330,7 @@ public class SensorInterfaceActivity extends Activity {
 			bleTx = null;
 			bleRx = null;
 		}
+		finish();
 	}
 
 	@Override
@@ -328,7 +349,7 @@ public class SensorInterfaceActivity extends Activity {
 	    // Respond to the action bar's Up/Home button
 	    case android.R.id.home:
 	    	Log.d("SensorInterfaceActivity", "User pressed 'Up'");
-	    	bleClose();
+	    	bleDisconnect();
 	        NavUtils.navigateUpFromSameTask(this);
 	        return true;
 	    }

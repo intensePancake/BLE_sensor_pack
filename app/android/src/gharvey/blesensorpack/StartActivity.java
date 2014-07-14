@@ -57,11 +57,6 @@ public class StartActivity extends Activity {
         bleHandler = new Handler();
 		
 		// Initialize Bluetooth adapter
-        /*
-        final BluetoothManager btManager =
-				(BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-		btAdapter = btManager.getAdapter();
-		*/
         btAdapter = BluetoothAdapter.getDefaultAdapter();
 		
 		// check if Bluetooth is supported on the device
@@ -148,7 +143,6 @@ public class StartActivity extends Activity {
 		Log.v("StartActivity", "Starting the scan");
 		btAdapter.startLeScan(bleScanCallback);
 		Log.v("StartActivity", "Leaving bleScan()");
-		//btAdapter.startLeScan(UUIDs, bleScanCallback);
 	}
 	
 	private LeScanCallback bleScanCallback =

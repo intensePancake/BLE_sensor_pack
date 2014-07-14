@@ -29,13 +29,14 @@
 #define ADAFRUITBLE_RDY 3
 #define ADAFRUITBLE_RST 9
 
-#define NUM_SENSORS 6
-
 #define TIME_BETWEEN_SENDS 1000 // milliseconds
 
+
+#define NUM_SENSORS 7
 // sensor bit assignments in request byte
-#define TEMP_REQ_BIT 5
-#define HUMIDITY_REQ_BIT 4
+#define TEMP_REQ_BIT 6
+#define HUMIDITY_REQ_BIT 5
+#define HEAT_INDEX_REQ_BIT 4
 #define PRESSURE_REQ_BIT 3
 #define VIS_LIGHT_REQ_BIT 2
 #define IR_LIGHT_REQ_BIT 1
@@ -56,7 +57,7 @@ Adafruit_BLE_UART ble = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAF
 Adafruit_SI1145 lsensor = Adafruit_SI1145();
 
 // activity state of the sensors: 1 for on, 0 for off
-boolean state_T, state_H, state_P, state_Vis, state_IR, state_UV;
+boolean state_T, state_HU, state_HI, state_P, state_Vis, state_IR, state_UV;
 
 boolean sensors_enable;
 unsigned long last_send_time;
@@ -69,7 +70,7 @@ void setup()
     pinMode(ERR_LED_PIN, OUTPUT);
     digitalWrite(ERR_LED_PIN, LOW);
     
-    sensors_enable = true;
+    sensors_enable = false;
 	
     if(!barometer.begin()) {
         // init failure
@@ -113,8 +114,9 @@ void loop()
         byte TxBuf[NUM_SENSORS * (sizeof(byte) + sizeof(float))];
         int TxBufsize; // number of bytes to send
         int TxBufIndex = 0;
-        float temp; // in degrees Celcius
+        float temp; // in degrees Fahrenheit
         float humidity; // in percent
+        float heat_index;
         float abs_P, compensated_P; // in mbar
         float P_atm; // in atm
         float vis_intensity;
@@ -126,16 +128,30 @@ void loop()
             temp = getTemp();
             sensorDataToBuffer(TxBuf, TEMP_REQ_BIT, temp, &TxBufIndex);
         }
-        if(state_H) {
+        if(state_HU) {
             // get humidity
             humidity = dht.readHumidity();
             sensorDataToBuffer(TxBuf, HUMIDITY_REQ_BIT, humidity, &TxBufIndex);
+        }
+        if(state_HI) {
+            // we need both temperature and humidity to
+            // compute heat index
+            if(!state_T) {
+              temp = getTemp();
+            }
+            if(!state_HU) {
+              humidity = dht.readHumidity();
+            }
+            heat_index = dht.computeHeatIndex(temp, humidity);
+            sensorDataToBuffer(TxBuf, HEAT_INDEX_REQ_BIT, heat_index, &TxBufIndex);
         }
         if(state_P) {
             // get pressure
             // we need the temperature to get pressure,
             // so measure it if we haven't already
-            if(!state_T) {
+            if(!(state_T || state_HI)) {
+                // if we don't enter this conditional,
+                // temperature was already read
                 temp = getTemp();
             }
             abs_P = getAbsPressure(temp);
@@ -168,13 +184,6 @@ void loop()
     }
 }
 
-void sensorDataToBuffer(byte *buffer, byte sensor_select, float f, int *indexPtr)
-{
-    buffer[*indexPtr] = sensor_select;
-    *indexPtr += 1;
-    floatToByteArray(buffer, f, indexPtr);
-}
-
 void BLE_stateChange(aci_evt_opcode_t opcode)
 {
     // state change - print it to the serial port
@@ -199,8 +208,8 @@ void BLE_stateChange(aci_evt_opcode_t opcode)
  * was not sent for that sensor.  The bit position for each
  * sensor is shown below.
  *
- * |   7  |   6  |   5   |    4     |    3     |   2        |    1     |    0     |
- * | none | none | temp  | humidity | pressure | Vis. light | IR light | UV Index |
+ * |   7  |      6     |   5   |    4     |    3     |   2        |    1     |    0     |
+ * | none | heat index | temp  | humidity | pressure | Vis. light | IR light | UV Index |
  */
 void updateSensorState(uint8_t *RxBuf, uint8_t RxBufsize)
 {
@@ -215,7 +224,8 @@ void updateSensorState(uint8_t *RxBuf, uint8_t RxBufsize)
         Serial.println();
 #endif
         state_T = (req >> TEMP_REQ_BIT) & 0x1;
-	state_H = (req >> HUMIDITY_REQ_BIT) & 0x1;
+	state_HU = (req >> HUMIDITY_REQ_BIT) & 0x1;
+        state_HI = (req >> HEAT_INDEX_REQ_BIT) & 0x1;
 	state_P = (req >> PRESSURE_REQ_BIT) & 0x1;
 	state_Vis = (req >> VIS_LIGHT_REQ_BIT) & 0x1;
 	state_IR = (req >> IR_LIGHT_REQ_BIT) & 0x1;
@@ -235,7 +245,7 @@ float getTemp()
 	state = barometer.getTemperature(temp); // retrieve temperature
 	if(state != 0) {
 	    // successful temperature reading
-	    return (float)temp;
+	    return tempCtoF((float)temp);
 	} else {
 	    // could not get temperature
 #ifdef DEBUG
@@ -283,6 +293,18 @@ float getAbsPressure(float temp)
 	// TODO: error handling
 	errcode = barometer.getError();
     }
+}
+
+float tempCtoF(float Celcius)
+{
+    return 9 * Celcius / 5 + 32;
+}
+
+void sensorDataToBuffer(byte *buffer, byte sensor_select, float f, int *indexPtr)
+{
+    buffer[*indexPtr] = sensor_select;
+    *indexPtr += 1;
+    floatToByteArray(buffer, f, indexPtr);
 }
 
 void floatToByteArray(byte *buffer, float f, int *indexPtr)
