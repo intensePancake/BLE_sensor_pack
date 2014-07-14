@@ -98,7 +98,6 @@ public class SensorInterfaceActivity extends Activity {
 			
 			if(newState == BluetoothGatt.STATE_CONNECTED) {
 				// inform the user of the connection
-				//shortToast(R.string.connected_prefix + bleDevice.getName());
 				connectionStateView.setText(getString(R.string.connected_prefix) + bleDevice.getName());
 				Log.i("SensorInterfaceActivity", "Connected to GATT server");
 				
@@ -159,15 +158,19 @@ public class SensorInterfaceActivity extends Activity {
 				// update sensor value
 				for(Sensor sensor : sensorPack) {
 					if(((int) RxBuf[RxBufIndex]) == sensor.id_bit) {
-						// this sensor just sent data, so it must be on
-						sensor.turnOn(); // verify that the sensor is on
-						int bits = ((RxBuf[RxBufIndex + 1] & 0xFF)) |
+						// the sensor pack may have sent data if we just turned
+						// the sensor off, but haven't sent the status yet
+						
+						// check if we want this data
+						if(sensor.isOn()) {
+							int bits = ((RxBuf[RxBufIndex + 1] & 0xFF)) |
 								   ((RxBuf[RxBufIndex + 2] & 0xFF) << 8) |
 								   ((RxBuf[RxBufIndex + 3] & 0xFF) << 16) |
 								   ((RxBuf[RxBufIndex + 4] & 0xFF) << 24);
 						data = Float.intBitsToFloat(bits);
 						sensor.setData(data);
 						break;
+						}
 					}
 				}
 				RxBufIndex += 5; // 1 byte for sensor id + 4 bytes for sensor data
