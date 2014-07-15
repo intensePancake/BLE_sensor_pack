@@ -5,7 +5,7 @@
  * Sensor Pack through the BleService.
  *
  * Author: Graham Harvey
- * Last modified: 9 July 2014
+ * Last modified: 14 July 2014
  *
  * Parts of this code are similar to the sample BluetoothLeGatt code on
  * the Android developer website.  The reference material that was used

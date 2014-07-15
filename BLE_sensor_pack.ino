@@ -1,8 +1,8 @@
 /* 
- * BT_sensors.ino
+ * BLE_sensor_pack.ino
  *
  * Author: Graham Harvey
- * Last Modified: 11 July 2014
+ * Last Modified: 14 July 2014
  * Version: 1.0
  *
  * This is the main Arduino project file for this Bluetooth
