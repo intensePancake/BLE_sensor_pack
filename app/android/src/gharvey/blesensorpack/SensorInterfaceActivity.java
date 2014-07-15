@@ -88,17 +88,27 @@ public class SensorInterfaceActivity extends Activity {
 	private Sensor sensorPack[] = new Sensor[NUM_SENSORS];
 	private DisplayAdapter displayAdapter;
 	private ListView listView;
+	
+	private TextView connectionStateView;
+	private String connectionText;
+	
+	private void updateConnectionState() {
+		runOnUiThread(new Runnable() {
+			public void run() {
+				connectionStateView.setText(connectionText);
+			}
+		});
+	}
 			
 	private BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
 		@Override
 		public void onConnectionStateChange(BluetoothGatt bleGatt, int status, int newState) {
 			super.onConnectionStateChange(bleGatt, status, newState);
-
-			TextView connectionStateView = (TextView) findViewById(R.id.connection_state);
 			
 			if(newState == BluetoothGatt.STATE_CONNECTED) {
 				// inform the user of the connection
-				connectionStateView.setText(getString(R.string.connected_prefix) + bleDevice.getName());
+				connectionText = getString(R.string.connected_prefix) + bleDevice.getName();
+				updateConnectionState();
 				Log.i("SensorInterfaceActivity", "Connected to GATT server");
 				
 				if(!bleGatt.discoverServices()) {
@@ -106,12 +116,12 @@ public class SensorInterfaceActivity extends Activity {
 					Log.e("SensorInterfaceActivity", "No services discovered");
 				}
 			} else if(newState == BluetoothGatt.STATE_DISCONNECTED) {
-				//shortToast(R.string.disconnected);
-				connectionStateView.setText("Disconnected");
+				connectionText = getString(R.string.disconnected);
+				updateConnectionState();
 				Log.d("SensorInterfaceActivity", "Disconnected");
 			} else {
-				//shortToast(R.string.state_change_prefix + newState);
-				connectionStateView.setText("Unknown connection state");
+				connectionText = getString(R.string.unknown_state);
+				updateConnectionState();
 				Log.e("SensorInterfaceActivity", "Unknown state: " + newState);
 			}
 		}
@@ -268,6 +278,8 @@ public class SensorInterfaceActivity extends Activity {
 		
 		sensorPack_init();
 		display_init();
+		
+		connectionStateView = (TextView) findViewById(R.id.connection_state);
 
 		// get the intent used to start this activity
 		final Intent incoming_i = getIntent();
@@ -308,21 +320,20 @@ public class SensorInterfaceActivity extends Activity {
 	@Override
 	public void onPause() {
 		super.onPause();
-		closeActivity();
+		bleDisconnect();
+		finish();
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
-		closeActivity();
-	}
-	
-	public void closeActivity() {
 		bleDisconnect();
+		finish();
 	}
-	
-	public void bleDisconnect(View view) {
+
+	public void clickDisconnect(View view) {
 		bleDisconnect();
+		finish();
 	}
 	
 	public void bleDisconnect() {
@@ -333,7 +344,6 @@ public class SensorInterfaceActivity extends Activity {
 			bleTx = null;
 			bleRx = null;
 		}
-		finish();
 	}
 
 	@Override
@@ -353,6 +363,7 @@ public class SensorInterfaceActivity extends Activity {
 	    case android.R.id.home:
 	    	Log.d("SensorInterfaceActivity", "User pressed 'Up'");
 	    	bleDisconnect();
+	    	//finish();
 	        NavUtils.navigateUpFromSameTask(this);
 	        return true;
 	    }

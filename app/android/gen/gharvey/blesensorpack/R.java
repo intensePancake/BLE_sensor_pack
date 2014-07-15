@@ -62,8 +62,8 @@ public final class R {
         public static final int sensor_all_on=0x7f05000a;
         public static final int sensor_state_off=0x7f050009;
         public static final int sensor_state_on=0x7f050008;
-        public static final int state_change_prefix=0x7f050005;
         public static final int title_activity_sensor_interface=0x7f050013;
+        public static final int unknown_state=0x7f050005;
     }
     public static final class style {
         /** 

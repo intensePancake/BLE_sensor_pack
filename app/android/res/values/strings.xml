@@ -6,7 +6,7 @@
     <string name="action_settings">Settings</string>
     <string name="connected_prefix">Connected to&#160;</string>
     <string name="disconnected">Disconnected</string>
-    <string name="state_change_prefix">Unknown connection state: </string>
+    <string name="unknown_state">Unknown connection state</string>
     
     <string name="header_sensor">Sensor</string>
     <string name="header_value">Value</string>

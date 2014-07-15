@@ -19,7 +19,7 @@ All text above, and the splash screen below must be included in any redistributi
 #include "Adafruit_BLE_UART.h"
 
 #define ADAFRUITBLE_REQ 10
-#define ADAFRUITBLE_RDY 2
+#define ADAFRUITBLE_RDY 3
 #define ADAFRUITBLE_RST 9
 
 Adafruit_BLE_UART uart = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
