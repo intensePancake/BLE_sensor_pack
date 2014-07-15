@@ -2159,7 +2159,7 @@ for power line</description>
 <part name="9V" library="battery" deviceset="1V60R" device="" value=""/>
 <part name="FRAME1" library="frames" deviceset="DOCFIELD" device=""/>
 <part name="U$5" library="BLE_sensor_pack_parts" deviceset="TI_LM2825" device=""/>
-<part name="CX1" library="rcl" deviceset="CX" device="XC10B5"/>
+<part name="C1" library="rcl" deviceset="CX" device="XC10B5" value="0.1uF"/>
 </parts>
 <sheets>
 <sheet>
@@ -2174,7 +2174,7 @@ for power line</description>
 </instance>
 <instance part="FRAME1" gate="G$1" x="110.49" y="3.81"/>
 <instance part="U$5" gate="G$1" x="33.02" y="40.64"/>
-<instance part="CX1" gate="G$1" x="53.34" y="17.78"/>
+<instance part="C1" gate="G$1" x="53.34" y="17.78"/>
 </instances>
 <busses>
 </busses>
@@ -2220,7 +2220,7 @@ for power line</description>
 <wire x1="50.8" y1="50.8" x2="53.34" y2="50.8" width="0.1524" layer="91"/>
 <wire x1="53.34" y1="50.8" x2="53.34" y2="60.96" width="0.1524" layer="91"/>
 <junction x="53.34" y="60.96"/>
-<pinref part="CX1" gate="G$1" pin="2"/>
+<pinref part="C1" gate="G$1" pin="2"/>
 <wire x1="53.34" y1="12.7" x2="53.34" y2="10.16" width="0.1524" layer="91"/>
 <wire x1="53.34" y1="10.16" x2="63.5" y2="10.16" width="0.1524" layer="91"/>
 <junction x="63.5" y="10.16"/>
@@ -2236,7 +2236,7 @@ for power line</description>
 </net>
 <net name="N$15" class="0">
 <segment>
-<pinref part="CX1" gate="G$1" pin="1"/>
+<pinref part="C1" gate="G$1" pin="1"/>
 <wire x1="53.34" y1="20.32" x2="53.34" y2="25.4" width="0.1524" layer="91"/>
 <pinref part="U$5" gate="G$1" pin="SOFT@14"/>
 <wire x1="53.34" y1="25.4" x2="53.34" y2="27.94" width="0.1524" layer="91"/>
